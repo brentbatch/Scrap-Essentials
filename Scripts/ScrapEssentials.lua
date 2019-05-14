@@ -1,25 +1,23 @@
+function debugmode() if sm.game.getCurrentTick() > 1 and not sm.isServerMode() then local modders = {["Mini"] = true, ["Brent Batch"] = true, ["TechnologicNick"] = true} local name = sm.localPlayer.getPlayer().name if modders[name] then function debugmode() return true end return true else function debugmode() return false end return false end end end
 
-if(sm.localPlayer.getPlayer().name == "Mini" or sm.localplayer.getPlayer().name == "Brent Batch") then
-    if true then
-        function debug(...)
-            print(...)
-        end
-    end
-
-    if true then
-        function info(...)
-            print(...)
-        end
-    end
-else
-    function debug() end
-    function info() end
+function debug(...) if debugmode() then print(...) end end
+function info(...) if debugmode() then info(...) end end
+if not printO then
+    printO = print
 end
+function print(...)
+	if debugmode() then
+		printO("[" .. sm.game.getCurrentTick() .. "]", sm.isServerMode() and "[Server]" or "[Client]", ...)
+	else
+		printO(...)
+	end
+end
+
 
 --ScrapEssentials.lua:
 
 if sm.scrapEssentialsLoaded == true then return end
-sm.scrapEssentialsLoaded = true -- prevents loading this file multiple times
+sm.scrapEssentialsLoaded = true -- prevents loading this file multiple times --> move to version controll
 sm.scrap_essentials = {}
 
 dofile "ScrapEssentials/globalgui.lua"
