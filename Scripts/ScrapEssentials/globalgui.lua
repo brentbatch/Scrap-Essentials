@@ -756,6 +756,31 @@ function sm.globalgui.invisibleBox( posX, posY, width, height, onclick_callback,
 	return item
 end
 
+	local EffectsControlTab = sm.globalgui.tabControl({}, {})
+
+    local PhysicsHeaderButton = sm.globalgui.buttonSmall(bgx + 100, bgy + 100, 300, 75, "Physics")
+    local ParticlesHeaderButton = sm.globalgui.buttonSmall(bgx + 400, bgy + 100, 300, 75, "Particles")
+    local SpawnHeaderButton = sm.globalgui.buttonSmall(bgx + 700, bgy + 100, 300, 75, "Spawn Blocks")
+	
+    local SpawnItems = sm.globalgui.collection({})
+    local PhysicsItems = sm.globalgui.collection({})
+    local ParticlesItems = sm.globalgui.collection({})
+	
+	SpawnItems:addItemWithId("SpawnConcreteButton", SpawnConcreteButton)
+	PhysicsItems:addItemWithId("SmallExplosionButton", SmallExplosionButton)
+	PhysicsItems:addItemWithId("BigExplosionButton", BigExplosionButton)
+	ParticlesItems:addItemWithId("PaintSmokeButton", PaintSmokeButton)
+	ParticlesItems:addItemWithId("ExperimentalButton", ExperimentalButton)
+
+
+    EffectsControlTab:addItemWithId("PhysicsTabIndex", PhysicsHeaderButton, PhysicsItems)
+    EffectsControlTab:addItemWithId("ParticlesTabIndex", ParticlesHeaderButton, ParticlesItems)
+    EffectsControlTab:addItemWithId("SpawnTabIndex", SpawnHeaderButton, SpawnItems)
+	
+    gui:addItemWithId("EffectsTabControl", EffectsControlTab)
+	
+	
+	Part.gui.items.EffectsTabControl.items.SpawnTabIndex.items[1] -- this is the 'SpawnConcreteButton'
 
 function sm.globalgui.tabControl(headers, items)
 	assert(type(headers) == "table", "tabControl: headers, table expected! got: "..type(headers))
