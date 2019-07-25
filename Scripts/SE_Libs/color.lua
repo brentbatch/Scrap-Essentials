@@ -1,4 +1,9 @@
-print("Colors library loading...")
+local version = 1
+
+if (sm.__SE_Version._Color or 0) >= version then return end
+sm.__SE_Version._Color = version
+
+print("Loading Colors library")
 
 --Matches any color with a group
 function sm.color.match( color )
@@ -52,5 +57,3 @@ function sm.color.toRGB( hsv )
 end
 
 sm.color.new(0,0,0).match = sm.color.match
-
-print("Succesfully loaded.")

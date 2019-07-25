@@ -1,4 +1,9 @@
-print("Physics library loading...")
+local version = 1
+
+if (sm.__SE_Version._Physics or 0) >= version then return end
+sm.__SE_Version._Physics = version
+
+print("Loading Physics library")
 
 -- set local gravity:
 if not sm.localGravityControllers then sm.localGravityController = {} end
@@ -28,5 +33,3 @@ function sm.physics.creationAddVelocity(in_body, velocity) for i, body in pairs(
 
 --Add angular velocity for bodies
 function sm.physics.addAngularVelocity(body, a_velocity) sm.physics.applyTorque(body, a_velocity * body:getMOI(a_velocity)) end
-
-print("Succesfully loaded.")

@@ -1,3 +1,8 @@
+local version = 1
+
+if (sm.__SE_Version._Body or 0) >= version then return end
+sm.__SE_Version._Body = version
+
 print("Bodies library loading...")
 
 if (not sm.body.COM) then sm.body.COM = {} end
@@ -129,11 +134,12 @@ function sm.body.getCreationMOI(in_body, in_axis)
     return in_axis.x * (in_axis.x * inertia.xx + in_axis.y * inertia.xy + in_axis.z * inertia.xz) + in_axis.y * (in_axis.x * inertia.xy + in_axis.y * inertia.yy + in_axis.z * inertia.yz) + in_axis.z * (in_axis.x * inertia.xz + in_axis.y * inertia.yz + in_axis.z * inertia.zz)
 end
 
-table.insert(sm.scrap_essentials, function(self)
-	self.shape:getBody().getCOM = function(body) return sm.body.getCOM(body) end
-	self.shape:getBody().getCreationCOM = function(body) return sm.body.getCreationCOM(body) end
-	self.shape:getBody().getMOI = function(body, param1) return sm.body.getMOI(body, param1) end
-	self.shape:getBody().getCreationMOI = function(body, param1) return sm.body.getCreationMOI(body, param1) end
-end)
-
-print("Succesfully loaded.")
+table.insert(
+	sm.__SE_UserDataImprovements_Server, 
+	function(self)
+		self.shape:getBody().getCOM = sm.body.getCOM
+		self.shape:getBody().getCreationCOM = sm.body.getCreationCOM
+		self.shape:getBody().getMOI = sm.body.getMOI
+		self.shape:getBody().getCreationMOI = sm.body.getCreationMOI
+	end
+)

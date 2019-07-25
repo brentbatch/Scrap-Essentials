@@ -1,4 +1,9 @@
-print("Vectors library loading...")
+local version = 1
+
+if (sm.__SE_Version._Vec3 or 0) >= version then return end
+sm.__SE_Version._Vec3 = version
+
+print("Loading Vectors library")
 
 -- Working normalize
 function sm.vec3.normalize(vec) return vec:length2() == 0 and vec or vec * ( 1 / vec:length()) end --VectorBug
@@ -18,5 +23,3 @@ sm.vec3.new(0,0,0).parallel = sm.vec3.parallel
 sm.vec3.new(0,0,0).tangent = sm.vec3.tangent
 sm.vec3.new(0,0,0).localize = sm.vec3.localize
 sm.vec3.new(0,0,0).delocalize = sm.vec3.delocalize
-
-print("Succesfully loaded.")
