@@ -30,15 +30,15 @@ sm.__SE_Version = sm.__SE_Version or {}
 
 dofile "Libs/Debugger.lua"
 
-dofile "Libs/body.lua"
-dofile "Libs/color.lua"
-dofile "Libs/interactable.lua" -- only load when you need it
-dofile "Libs/math.lua"
-dofile "Libs/physics.lua"
-dofile "Libs/physics.lua"
-dofile "Libs/player.lua"
-dofile "Libs/table.lua"
-dofile "Libs/vec3.lua"
+dofile "Libs/Body.lua"
+dofile "Libs/Color.lua"
+dofile "Libs/Interactable.lua" -- only load when you need it
+dofile "Libs/Math.lua"
+dofile "Libs/Physics.lua"
+dofile "Libs/Physics.lua"
+dofile "Libs/Player.lua"
+dofile "Libs/Table.lua"
+dofile "Libs/Vec3.lua"
 
 --dofile "Libs/player.lua" -- only load when you need it
 
