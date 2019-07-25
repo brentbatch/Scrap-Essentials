@@ -6,24 +6,24 @@ sm.__SE_Version._Player = version
 print("Loading extra player functions")
 
 
-sm.player.placeLiftO = sm.player.placeLiftO or sm.player.placeLift
-sm.player.lifts = sm.player.lifts or {}
-sm.player.disabledLifts = sm.player.disabledLifts or {} 
+__OLD_placeLift = __OLD_placeLift or sm.player.placeLift
+local liftsPlaced = {}
+local disabledLifts = {} 
 
 function sm.player.placeLift(player,bodies,position,liftlevel,rotation) -- serverfunction
-	table.insert(sm.player.lifts, { player = player, bodies = bodies, position = position, liftlevel = liftlevel , rotation = rotation, placed = sm.game.getCurrentTick() })
-	if not sm.player.disabledLifts[player.id] then
-		sm.player.placeLiftO(player,bodies,position,liftlevel,rotation)
+	table.insert(liftsPlaced, { player = player, bodies = bodies, position = position, liftlevel = liftlevel , rotation = rotation, placed = sm.game.getCurrentTick() })
+	if not disabledLifts[player.id] then
+		__OLD_placeLift(player,bodies,position,liftlevel,rotation)
 	end
 	--print(player,bodies,position,liftlevel,rotation)
 end
-function sm.player.getLifts()
-	local lifts = sm.player.lifts
-	sm.player.lifts = {}
+function sm.player.getLiftsPlacements()
+	local lifts = liftsPlaced
+	liftsPlaced = {}
 	return lifts
 end
-function sm.player.liftEnabled(player, enabled)
-	if not enabled or sm.player.disabledLifts[player.id] then
-		sm.player.disabledLifts[player.id] = not enabled
+function sm.player.setLiftPlaceable(player, enabled)
+	if not enabled or disabledLifts[player.id] then
+		disabledLifts[player.id] = not enabled
 	end
 end
