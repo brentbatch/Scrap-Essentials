@@ -5,16 +5,16 @@ sm.__SE_Version._Body = version
 
 print("Bodies library loading...")
 
-if (not sm.body.COM) then sm.body.COM = {} end
+local bodyCOMs = {}
 
 -- Body's center of mass
 function sm.body.getCOM(body)
-    if (not sm.body.COM[body.id]) then sm.body.COM[body.id] = {} end
+    if (not bodyCOMs[body.id]) then bodyCOMs[body.id] = {} end
     -- First iteration or change detected
-    if ((not sm.body.COM[body.id].tick)or((sm.body.COM[body.id].tick < sm.game.getCurrentTick())and(sm.body.hasChanged(body, sm.body.COM[body.id].tick)))or(not sm.exists(sm.body.COM[body.id].shape))) then
-        if (not sm.body.COM[body.id].body) then sm.body.COM[body.id].body = body end -- AUTO DELETE
+    if ((not bodyCOMs[body.id].tick)or((bodyCOMs[body.id].tick < sm.game.getCurrentTick())and(sm.body.hasChanged(body, bodyCOMs[body.id].tick)))or(not sm.exists(bodyCOMs[body.id].shape))) then
+        if (not bodyCOMs[body.id].body) then bodyCOMs[body.id].body = body end -- AUTO DELETE
         local shapes = body:getShapes()
-        sm.body.COM[body.id].shape = shapes[1]
+        bodyCOMs[body.id].shape = shapes[1]
         local mass = 0
         local center = sm.vec3.new(0, 0, 0)
         for i, shape in pairs(shapes) do
@@ -22,12 +22,12 @@ function sm.body.getCOM(body)
             mass = mass + shape:getMass()
         end
         center = center * (1 / mass) --VectorBug
-        local displacement = center - sm.body.COM[body.id].shape:getWorldPosition()
-        sm.body.COM[body.id].vector = displacement:localize(sm.body.COM[body.id].shape)
-        sm.body.COM[body.id].tick = sm.game.getCurrentTick()
+        local displacement = center - bodyCOMs[body.id].shape:getWorldPosition()
+        bodyCOMs[body.id].vector = displacement:localize(bodyCOMs[body.id].shape)
+        bodyCOMs[body.id].tick = sm.game.getCurrentTick()
         return center
     end
-    return sm.body.COM[body.id].shape:getWorldPosition() + sm.body.COM[body.id].vector:delocalize(sm.body.COM[body.id].shape)
+    return bodyCOMs[body.id].shape:getWorldPosition() + bodyCOMs[body.id].vector:delocalize(bodyCOMs[body.id].shape)
 end
 
 -- Vehicle's center of mass
@@ -36,34 +36,35 @@ function sm.body.getCreationCOM(in_body)
     local mass = 0
     local center = sm.vec3.new(0, 0, 0)
     for i, body in pairs(bodies) do
-        center = center + body:getCOM() * body.mass
+        center = center + sm.body.getCOM(body) * body.mass
         mass = mass + body.mass
     end
     center = center * (1 / mass) --VectorBug
     return center
 end
 
-if (not sm.body.MOI) then sm.body.MOI = {} end
+local bodyMOIs = {}
 
 -- Creation's moment of inertia
 function sm.body.getMOI(body, in_axis)
-    if (not sm.body.MOI[body.id]) then sm.body.MOI[body.id] = {} end
-    if (not sm.body.MOI[body.id].inertia) then sm.body.MOI[body.id].inertia = {} end
-    if (not sm.body.MOI[body.id].tick) then sm.body.MOI[body.id].tick = 0 end
-    if (not sm.body.MOI[body.id].body) then sm.body.MOI[body.id].body = body end -- AUTO DELETE
+	bodyMOIs[body.id] = bodyMOIs[body.id] or {
+		inertia = {},
+		tick = 0,
+		body = body
+	}
     local shapes = body:getShapes()
-    sm.body.MOI[body.id].shape = shapes[1]
-    in_axis = in_axis:localize(sm.body.MOI[body.id].shape)
+    bodyMOIs[body.id].shape = shapes[1]
+    in_axis = in_axis:localize(bodyMOIs[body.id].shape)
     in_axis = in_axis:normalize()
-    if ((not sm.body.MOI[body.id].tick)or(sm.body.hasChanged(body, sm.body.MOI[body.id].tick))) then
-        sm.body.MOI[body.id].inertia.xx = 0
-        sm.body.MOI[body.id].inertia.yy = 0
-        sm.body.MOI[body.id].inertia.zz = 0
-        sm.body.MOI[body.id].inertia.xy = 0
-        sm.body.MOI[body.id].inertia.yz = 0
-        sm.body.MOI[body.id].inertia.xz = 0
+    if ((not bodyMOIs[body.id].tick)or(sm.body.hasChanged(body, bodyMOIs[body.id].tick))) then
+        bodyMOIs[body.id].inertia.xx = 0
+        bodyMOIs[body.id].inertia.yy = 0
+        bodyMOIs[body.id].inertia.zz = 0
+        bodyMOIs[body.id].inertia.xy = 0
+        bodyMOIs[body.id].inertia.yz = 0
+        bodyMOIs[body.id].inertia.xz = 0
         for i, shape in pairs(shapes) do
-            local center = body:getCOM()
+            local center = sm.body.getCOM(body)
             local box = shape:getBoundingBox()
             local mass = shape.mass / (box.x * 4 * box.y * 4 * box.z * 4)
             local pos = shape:getWorldPosition()
@@ -74,20 +75,20 @@ function sm.body.getMOI(body, in_axis)
                     for z = box.z * 2, box.z * -2 + 1, -1 do
                         position = position + shape:getUp() * (z / 4 - 0.125)
                         local dif = position - center
-                        dif = dif:localize(sm.body.MOI[body.id].shape)
-                        sm.body.MOI[body.id].inertia.xx = sm.body.MOI[body.id].inertia.xx + mass * (dif.y * dif.y + dif.z * dif.z)
-                        sm.body.MOI[body.id].inertia.yy = sm.body.MOI[body.id].inertia.yy + mass * (dif.x * dif.x + dif.z * dif.z)
-                        sm.body.MOI[body.id].inertia.zz = sm.body.MOI[body.id].inertia.zz + mass * (dif.x * dif.x + dif.y * dif.y)
-                        sm.body.MOI[body.id].inertia.xy = sm.body.MOI[body.id].inertia.xy - mass * dif.x * dif.y
-                        sm.body.MOI[body.id].inertia.yz = sm.body.MOI[body.id].inertia.yz - mass * dif.y * dif.z
-                        sm.body.MOI[body.id].inertia.xz = sm.body.MOI[body.id].inertia.xz - mass * dif.x * dif.z
+                        dif = dif:localize(bodyMOIs[body.id].shape)
+                        bodyMOIs[body.id].inertia.xx = bodyMOIs[body.id].inertia.xx + mass * (dif.y * dif.y + dif.z * dif.z)
+                        bodyMOIs[body.id].inertia.yy = bodyMOIs[body.id].inertia.yy + mass * (dif.x * dif.x + dif.z * dif.z)
+                        bodyMOIs[body.id].inertia.zz = bodyMOIs[body.id].inertia.zz + mass * (dif.x * dif.x + dif.y * dif.y)
+                        bodyMOIs[body.id].inertia.xy = bodyMOIs[body.id].inertia.xy - mass * dif.x * dif.y
+                        bodyMOIs[body.id].inertia.yz = bodyMOIs[body.id].inertia.yz - mass * dif.y * dif.z
+                        bodyMOIs[body.id].inertia.xz = bodyMOIs[body.id].inertia.xz - mass * dif.x * dif.z
                     end
                 end
             end
         end
-        sm.body.MOI[body.id].tick = sm.game.getCurrentTick()
+        bodyMOIs[body.id].tick = sm.game.getCurrentTick()
     end
-    return in_axis.x * (in_axis.x * sm.body.MOI[body.id].inertia.xx + in_axis.y * sm.body.MOI[body.id].inertia.xy + in_axis.z * sm.body.MOI[body.id].inertia.xz) + in_axis.y * (in_axis.x * sm.body.MOI[body.id].inertia.xy + in_axis.y * sm.body.MOI[body.id].inertia.yy + in_axis.z * sm.body.MOI[body.id].inertia.yz) + in_axis.z * (in_axis.x * sm.body.MOI[body.id].inertia.xz + in_axis.y * sm.body.MOI[body.id].inertia.yz + in_axis.z * sm.body.MOI[body.id].inertia.zz)
+    return in_axis.x * (in_axis.x * bodyMOIs[body.id].inertia.xx + in_axis.y * bodyMOIs[body.id].inertia.xy + in_axis.z * bodyMOIs[body.id].inertia.xz) + in_axis.y * (in_axis.x * bodyMOIs[body.id].inertia.xy + in_axis.y * bodyMOIs[body.id].inertia.yy + in_axis.z * bodyMOIs[body.id].inertia.yz) + in_axis.z * (in_axis.x * bodyMOIs[body.id].inertia.xz + in_axis.y * bodyMOIs[body.id].inertia.yz + in_axis.z * bodyMOIs[body.id].inertia.zz)
 end
 
 -- Creation's moment of inertia
@@ -95,20 +96,21 @@ end
 --YOU CAN'T APPLY TORQUE TO A WHOLE VEHICLE AT ONE TIME ANYWAYS
 --ALSO !RESOURCE INTENSIVE!
 function sm.body.getCreationMOI(in_body, in_axis)
-    local inertia = {}
     local shapes = in_body:getShapes()
     in_axis = in_axis:localize(shapes[1])
     in_axis = in_axis:normalize()
-    inertia.xx = 0
-    inertia.yy = 0
-    inertia.zz = 0
-    inertia.xy = 0
-    inertia.yz = 0
-    inertia.xz = 0
+    local inertia = {
+		xx = 0,
+		yy = 0,
+		zz = 0,
+		xy = 0,
+		yz = 0,
+		xz = 0
+	}
     for i, body in pairs(in_body:getCreationBodies()) do
         local shapes = body:getShapes()
         for n, shape in pairs(shapes) do
-            local center = body:getCOM()
+            local center = sm.body.getCOM(body)
             local box = shape:getBoundingBox()
             local mass = shape.mass / (box.x * 4 * box.y * 4 * box.z * 4)
             local pos = shape:getWorldPosition()
