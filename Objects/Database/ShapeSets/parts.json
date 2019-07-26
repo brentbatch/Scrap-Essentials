@@ -1,3 +1,51 @@
 {
-   "partList" : []
+   "partList" : [
+		{
+			"uuid": "289e08ef-e3d8-4f1b-bc10-a0bcf36fa0ce",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+                                    "$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_dif.tga",
+									"$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_asg.tga",
+									"$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_nor.tga"
+								],
+								"material": "DifAsgNor"
+							},
+                            {
+                                "textureList": [
+                                    "$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_dif.tga",
+									"$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_asg.tga",
+									"$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_nor.tga"
+                                ],
+                                "material": "UVAnimDifAsgNor",
+                                "custom":
+                                {
+                                    "uv0": { "u": 0.0625, "v": 0.0625 }
+                                }
+                            }
+                        ],
+						"mesh": "$GAME_DATA/Objects/Mesh/interactive/obj_interactive_logicgate_off.fbx",
+						"pose0": "$GAME_DATA/Objects/Mesh/interactive/obj_interactive_logicgate_on.fbx"
+					}
+				]
+			},
+            "scripted" : 
+			{
+				"filename": "$MOD_DATA/Scripts/SETest.lua",
+				"classname": "guiExample"
+			},
+			"color": "df7f00",
+			"box": {
+				"x": 1, "y": 1, "z": 1
+			},
+			"density": 250.0,
+			"physicsMaterial": "Plastic",
+			"sticky": "-Z+Z-Y+Y-X+X",			
+			"rotationSet": "PropYZ",
+			"qualityLevel": 2
+		}
+	]
 }
