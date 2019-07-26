@@ -28,19 +28,20 @@ sm.__SE_UserDataImprovements_Client = {} -- game env (cross mod)
 
 sm.__SE_Version = sm.__SE_Version or {}
 
-dofile "Libs/Debugger.lua"
+dofile "SE_Libs/Debugger.lua"
 
-dofile "Libs/body.lua"
-dofile "Libs/color.lua"
-dofile "Libs/interactable.lua" -- only load when you need it
-dofile "Libs/math.lua"
-dofile "Libs/physics.lua"
-dofile "Libs/physics.lua"
-dofile "Libs/player.lua"
-dofile "Libs/table.lua"
-dofile "Libs/vec3.lua"
+dofile "SE_Libs/body.lua"
+dofile "SE_Libs/color.lua"
+dofile "SE_Libs/interactable.lua" -- only load when you need it
+dofile "SE_Libs/math.lua"
+dofile "SE_Libs/physics.lua"
+dofile "SE_Libs/physics.lua"
+dofile "SE_Libs/player.lua"
+dofile "SE_Libs/table.lua"
+dofile "SE_Libs/vec3.lua"
+dofile "SE_Libs/globalgui.lua" -- only load when you need it
 
---dofile "Libs/player.lua" -- only load when you need it
+--dofile "SE_Libs/player.lua" -- only load when you need it
 
 
 function sm.ImproveUserData_Server(self)
