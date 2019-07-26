@@ -150,15 +150,19 @@
 -- NOTE: for setText() and getText(), reference the widget: optionMenu.items[1].label.widget:setText("lolol")
 
 
+
+if GlobalGUI and not sm.isDev then return end
+print("Loading GlobalGUI Library")
+
+
 if not devPrint then devPrint = function(...) end end -- if loaded, Debugger.lua creates this function
 
+guiClass = class()
+function guiClass.server_onRefresh(self) sm.isDev = true end
+function guiClass.client_onRefresh(self) end
+function guiClass.client_onUpdate(self, dt) end
 
---  == GLOBALGUI ==
-GlobalGUI = {}
-GlobalGUI.scaleX = 1
-GlobalGUI.scaleY = 1
-
-function GlobalGUI.wasCreated(self, gui)
+function guiClass.wasCreated(self, gui)
 	-- only the remote shape can initialize a global gui:
 	if (self.shape.worldPosition - sm.vec3.new(0,0,2000)):length()>100 then
 		devPrint("not remote shape")
@@ -171,13 +175,21 @@ function GlobalGUI.wasCreated(self, gui)
 	return false
 end
 
-function GlobalGUI.createRemote(scriptclass, self)
+function guiClass.createRemote(scriptclass, self)
     if not scriptclass.createdgui and (self.shape.worldPosition - sm.vec3.new(0,0,2000)):length()>100 then
 		scriptclass.createdgui = true 
 		local uuid = self.shape:getShapeUuid() 
 		sm.shape.createPart( uuid, sm.vec3.new(0,0,2000), sm.quat.identity(), false, true )
 	end
 end
+
+
+
+--  == GLOBALGUI ==
+GlobalGUI = {}
+GlobalGUI.scaleX = 1
+GlobalGUI.scaleY = 1
+
 
 function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update, on_show, protectionlayers, autoscale)  -- create new GLOBALGUI
 	assert(type(parentClass) == "table", "parentClass: class expected! got: "..type(parentClass))
@@ -196,7 +208,7 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 	guiBuilder.title = title or ""
 	guiBuilder.width = width or 600
 	guiBuilder.height = height or 300
-	guiBuilder.protectionlayers = protectionlayers or 10
+	guiBuilder.protectionlayers = protectionlayers or 50
 	guiBuilder.killedlayers = 0
 	guiBuilder.visible = false
 	guiBuilder.instantiated = true
@@ -316,7 +328,7 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 		self:setVisible(true) 
 		if not killedNowUselessFunctions then 
 			killedNowUselessFunctions = true
-			print("gui cleaned up!")
+			devPrint("gui cleaned up!")
 			for k, item in pairs(self.items) do 
 				if item.killNowUselessFunctions then item:killNowUselessFunctions() end 
 			end 
@@ -330,12 +342,12 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 			item:setVisible(visible)
 		end
 		if not visible then
-			if self.on_hide then self.on_hide(parentClassInstance) end
+			if parentClassInstance and parentClassInstance.shape and sm.exists(parentClassInstance.shape) and self.on_hide then self:on_hide(parentClassInstance) end
 			if not nomessage then
 				sm.gui.displayAlertText("Press 'e' again, use 'e' to exit next time", 5)
 			end
 		else
-			if self.on_show then self.on_show(parentClassInstance) end 
+			if parentClassInstance and sm.exists(parentClassInstance.shape) and self.on_show then self:on_show(parentClassInstance) end 
 		end
 	end
 	
@@ -1145,5 +1157,3 @@ function optionItem(widgetItem)
 	end
 	return item
 end
-
-print("GUI library", GlobalGUIVersion, "successfully loaded.")
