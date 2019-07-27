@@ -1,35 +1,66 @@
-local version = 1
+local version = 1.0
 
-if (sm.__SE_Version._Physics or 0) >= version then return end
-sm.__SE_Version._Physics = version
+-- Prefix: sm.physics.
 
-print("Loading Physics library")
+-- Commands:
+	-- addVelocity(body, velocity, global, offset)
+	-- creationAddVelocity(in_body, velocity)
+	-- addAngularVelocity(body, velocity, global)
 
--- set local gravity:
-local localGravityControllers = {}
-function sm.physics.setLocalGravity(self, gravity, shape, dir, drag) -- an option: scriptclass has to perform this function every tick to work instead of janky overwrite
-	dir = (dir or sm.vec3.new(0,0,1)):normalize()
-	drag = (drag ~= nil and drag or 1)
-	shape = shape or self.shape
-	if dir == sm.vec3.new(0,0,1) and gravity == 1 and localGravityControllers[self.interactable.id] then 
-		self.server_onFixedUpdate = localGravityControllers[self.interactable.id] 
-		localGravityControllers[self.interactable.id] = nil 
-	return end -- kill the loop
-	if not localGravityControllers[self.interactable.id] then localGravityControllers[self.interactable.id] = self.server_onFixedUpdate end -- store the original
-    function self.server_onFixedUpdate(self, dt)
-		if not localGravityControllers[self.interactable.id] then return end localGravityControllers[self.interactable.id](self, dt) -- perform original
-		if not sm.exists(shape) then self.server_onFixedUpdate = localGravityControllers[self.interactable.id] localGravityControllers[self.interactable.id] = nil return end -- kill the loop
-        for k, body in pairs(shape:getBody():getCreationBodies()) do -- do the gravity thing:
-			if sm.exists(body) then sm.physics.applyImpulse(body, (sm.vec3.new(0,0,1.047494) - dir * gravity)*sm.physics.getGravity()*dt*body.mass, true) end
-        end
-    end
-end
+-- Improved:
+	-- shape:addVelocity(velocity, global, offset)
+	-- body:addVelocity(velocity, global, offset)
+	-- body:creationAddVelocity(velocity)
+	-- body:addAngularVelocity(velocity, global)
+
+
+
+
+
+--[[
+	Copyright (c) 2019 Scrap Essentials Team
+]]--
+
+-- Version check
+if sm.__SE_Version.physics and version <= sm.__SE_Version.physics then return end
+
+
 
 -- Add velocity for shapes/bodies
-function sm.physics.addVelocity(body, velocity, global, offset) sm.physics.applyImpulse(body, velocity * body.mass, global, offset) end
+function sm.physics.addVelocity(body, velocity, global, offset)
+	global = global or false
+	offset = offset or sm.vec3.new(0,0,0)
+	assert(type(body) == "Shape" or type(body) == "Body", "addVelocity: argument 1, Shape or Body expected! got: "..type(body))
+	assert(type(velocity) == "Vec3", "addVelocity: argument 2, Vec3 expected! got: "..type(velocity))
+	assert(type(global) == "boolean", "addVelocity: argument 3, boolean expected! got: "..type(global))
+	assert(type(offset) == "Vec3", "addVelocity: argument 4, Vec3 expected! got: "..type(offset))
+	sm.physics.applyImpulse(body, velocity * body.mass, global, offset)
+end
 
 -- Add velocity for vehicles
-function sm.physics.creationAddVelocity(in_body, velocity) for i, body in pairs(in_body:getCreationBodies()) do sm.physics.applyImpulse(body, velocity * body.mass) end end
+function sm.physics.creationAddVelocity(in_body, velocity, global)
+	assert(type(in_body) == "Body", "creationAddVelocity: argument 1, Body expected! got: "..type(in_body))
+	assert(type(velocity) == "Vec3", "creationAddVelocity: argument 2, Vec3 expected! got: "..type(velocity))
+	for i, body in pairs(in_body:getCreationBodies()) do sm.physics.applyImpulse(body, velocity * body.mass, global) end
+end
 
 --Add angular velocity for bodies
-function sm.physics.addAngularVelocity(body, a_velocity) sm.physics.applyTorque(body, a_velocity * body:getMOI(a_velocity)) end
+function sm.physics.addAngularVelocity(body, a_velocity, global)
+	global = global or false
+	assert(type(body) == "Body", "addAngularVelocity: argument 1, Body expected! got: "..type(body))
+	assert(type(a_velocity) == "Vec3", "addAngularVelocity: argument 2, Vec3 expected! got: "..type(a_velocity))
+	assert(type(global) == "boolean", "addAngularVelocity: argument 3, boolean expected! got: "..type(global))
+	sm.physics.applyTorque(body, a_velocity * body:getMOI(a_velocity), global)
+end
+
+table.insert(sm.__SE_UserDataImprovements_Server, function(self)
+	self.shape.addVelocity = function(body, velocity, global, offset) return sm.physics.addVelocity(body, velocity, global, offset) end
+	self.shape.body.addVelocity = function(body, velocity, global, offset) return sm.physics.addVelocity(body, velocity, global, offset) end
+	self.shape.body.creationAddVelocity = function(in_body, velocity, global) return sm.physics.creationAddVelocity(in_body, velocity, global) end
+	self.shape.body.addAngularVelocity = function(body, a_velocity, global) return sm.physics.addAngularVelocity(body, a_velocity, global) end
+end)
+
+
+
+sm.__SE_Version.physics = version
+print("'physics' library version "..tostring(version).." successfully loaded.")

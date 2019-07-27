@@ -1,3 +1,5 @@
+-- REQUIRES REWRITING
+
 local version = 1.0
 
 -- Required:
