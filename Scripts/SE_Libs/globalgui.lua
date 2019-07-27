@@ -1,6 +1,7 @@
 
 ----------------------------------
 --Copyright (c) 2019 Brent Batch--
+--     Free to use for all      --
 ----------------------------------
 
 -- API DOC:    -- all functions are *ClientMethod* 
@@ -190,6 +191,7 @@ GlobalGUI = {}
 GlobalGUI.scaleX = 1
 GlobalGUI.scaleY = 1
 
+local parentClassInstance = nil
 
 function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update, on_show, protectionlayers, autoscale)  -- create new GLOBALGUI
 	assert(type(parentClass) == "table", "parentClass: class expected! got: "..type(parentClass))
@@ -270,10 +272,8 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 	guiBuilder.bgPosX, guiBuilder.bgPosY = guiBuilder.bgPosX/GlobalGUI.scaleX, guiBuilder.bgPosY/GlobalGUI.scaleY
 	guiBuilder.width, guiBuilder.height = guiBuilder.width/GlobalGUI.scaleX, guiBuilder.height/GlobalGUI.scaleY
 	
-	local parentClassInstance = nil
 	
 	function parentClass.client_onclick(self, widget)
-		devPrint("gui click")
 		local itemids = guiBuilder.onClickRouteTable[widget.id]
 		for _, id in pairs(itemids) do
 			if guiBuilder.on_click then guiBuilder.on_click(widget) end
@@ -434,12 +434,12 @@ function GlobalGUI.button( posX, posY, width, height, value, onclick_callback, o
 		if self.lastclick == currentTick then return end self.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click(parentClassInstance) end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -504,12 +504,12 @@ function GlobalGUI.buttonSmall(posX, posY, width, height, value, onclick_callbac
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click(parentClassInstance) end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 		
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -572,12 +572,12 @@ function GlobalGUI.label(posX, posY, width, height, value, onclick_callback, on_
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click(parentClassInstance) end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 		
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -638,12 +638,12 @@ function GlobalGUI.labelSmall( posX, posY, width, height, value, onclick_callbac
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click(parentClassInstance) end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -699,12 +699,12 @@ function GlobalGUI.textBox( posX, posY, width, height, value, onclick_callback, 
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click(parentClassInstance) end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -753,12 +753,12 @@ function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click(parentClassInstance) end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.widget.visible = visible
 	end
@@ -787,22 +787,24 @@ function GlobalGUI.tabControl(headers, items)
 	item.items = items -- { [1] = collection/item, [2] = collection/item, ... } NOW ALSO WITH CUSTOM IDS thanks to addItemWithId
 	item.visible = true
 	item.onClickRouteTable = {} 
-	item.currenttab = 1
+	item.currenttab = headers[1] and 1 or nil
 	for k, v in pairs(item.headers) do
 		v.ItemType = "header"
 	end
 	
 	function item.addItem(self, newheader, newitem)
 		newheader.ItemType = "header"
-		table.insert(item.headers, newheader)
-		table.insert(item.items, newitem)
+		table.insert(self.headers, newheader)
+		table.insert(self.items, newitem)
 		self.id = self.id or newheader.id
+		self.currenttab = self.currenttab or 1
 	end
 	function item.addItemWithId(self, headerid, newheader, newitem)
 		newheader.ItemType = "header"
-		item.headers[headerid] = newheader
-		item.items[headerid] = newitem
+		self.headers[headerid] = newheader
+		self.items[headerid] = newitem
 		self.id = self.id or newheader.id
+		self.currenttab = self.currenttab or headerid
 	end
 	function item.killNowUselessFunctions(self)
 		self.killNowUselessFunctions = nil
@@ -832,7 +834,7 @@ function GlobalGUI.tabControl(headers, items)
 	end
 	function item.onClick(self, widgetid, parentClassInstance)
 		local currentTick = sm.game.getCurrentTick()
-		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
+		if self.lastclick == currentTick then return end self.lastclick = currentTick -- protection
 		
 		local itemdatas = self.onClickRouteTable[widgetid]
 		for _, itemdata in pairs(itemdatas) do 
@@ -855,7 +857,7 @@ function GlobalGUI.tabControl(headers, items)
 	end
 	
 	function item.setVisibleTab(self, visible, tab)
-		--self.currenttab = (tab and tab or self.currenttab) -- change tab if defined
+		self.currenttab = tab or self.currenttab -- change tab if defined
 		for itemindex, item in pairs(self.items) do
 			item:setVisible(itemindex == self.currenttab and visible)
 		end
@@ -1018,7 +1020,7 @@ function GlobalGUI.optionMenu(posX, posY, width, height, on_show)
 		self.items[itemid]:onClick(widgetid, parentClassInstance)
 	end
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.gui.visible = visible
 		self.visible = visible
 	end
