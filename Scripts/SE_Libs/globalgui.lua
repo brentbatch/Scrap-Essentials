@@ -169,7 +169,7 @@ function guiClass.wasCreated(self, gui)
 		devPrint("not remote shape")
 		return true-- too far from remoteguiposition, this block cannot initialize gui
 	elseif (gui and gui.instantiated) then -- kill duplicate remote gui blocks
-		devPrint("duped remote ") 
+		devPrint("found duped remote") 
 		function self.server_onFixedUpdate(self, dt) self.shape:destroyShape(0) devPrint("destroyed dupe", self.shape.id) self.server_onFixedUpdate = nil end 
 		return true
 	end
@@ -282,15 +282,15 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 		--Copyright (c) 2019 Brent Batch--
 	end
 	function parentClass.killview(self, widget) -- only bg items
-		devPrint("gui killview")
+		devPrint("Removed GUI protectionLayer.")
 		local itemid = guiBuilder.onClickRouteTable[widget.id]
 		guiBuilder.items[itemid]:setVisible(false)
 		guiBuilder.items[itemid] = nil
 		guiBuilder.killedlayers = guiBuilder.killedlayers + 1
 		if guiBuilder.protectionlayers - guiBuilder.killedlayers < 11 then
 			if itemid == 3 then -- background broke
-				print('killed gui completely')
-				sm.gui.displayAlertText("GREAT, you killed the GUI.... bad boy!", 2)
+				--print('killed gui completely')
+				sm.gui.displayAlertText("GUI broke, closing and restoring gui.", 2)
 				guiBuilder:setVisible(false, true)
 				parentClass.client_onUpdate = nil
 				guiBuilder.instantiated = false
@@ -328,7 +328,6 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 		self:setVisible(true) 
 		if not killedNowUselessFunctions then 
 			killedNowUselessFunctions = true
-			devPrint("gui cleaned up!")
 			for k, item in pairs(self.items) do 
 				if item.killNowUselessFunctions then item:killNowUselessFunctions() end 
 			end 

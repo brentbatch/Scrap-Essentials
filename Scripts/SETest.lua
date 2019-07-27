@@ -16,7 +16,7 @@ guiExample.colorNormal = sm.color.new(0xdf7000ff)
 guiExample.colorHighlight = sm.color.new(0xef8010ff)
 
 function guiExample.server_onCreate( self ) 
-	guiClass.createRemote(guiExample, self) -- create remote shape to handle all gui stuff, only one remote shape will exist at a time.
+	guiExample:createRemote(self) -- create remote shape to handle all gui stuff, only one remote shape will exist at a time.
 end
 
 function guiExample.server_onFixedUpdate( self, dt )
@@ -28,7 +28,7 @@ function guiExample.server_onFixedUpdate( self, dt )
 end
 
 
- 
+  
 function guiExample.client_onCreate( self )
 	self.interactable:setUvFrameIndex(0)
 
@@ -37,7 +37,7 @@ function guiExample.client_onCreate( self )
 end
 
 function guiExample.client_onSetupGui( self )
-	if guiClass.wasCreated(self, guiExample_GUI) then return end -- only allow remote shape to create a gui
+	if self:wasCreated(guiExample_GUI) then return end -- only allow remote shape to create a gui
 	
 	
 	local gui_on_show_functions = {
@@ -135,16 +135,18 @@ function guiExample.client_onSetupGui( self )
 	)
 	
 	
-	guiExample_GUI:addItem(button1)
+	guiExample_GUI:addItem(button1) -- the 'id' this 'addItem' function will use is 'button1.id' (some incremental gui widget number)
 	guiExample_GUI:addItem(button2)
 	guiExample_GUI:addItem(button3)
 	guiExample_GUI:addItemWithId("custombutton4", button4)
 	guiExample_GUI:addItemWithId("customlabel1", label1)
 	
 	
-	-- if true then return end -- uncomment this if you want to try out simple behaviour without menu's and stuff. the code below this won't be loaded then.
+	------------------- this is where simple stuff ends, uncomment the next line to not load the rest of the gui code -------------------------------
+	-- if true then return end
 	
-	local dummyButton = GlobalGUI.buttonSmall(0, 0, 0, 0, "dummy")
+	
+	
 	
 	-- < the following menu setup adds highlighting and per part it remembers which menu is selected.
 	-- if you want the behaviour to be simpler (selected submenu is global):
@@ -156,7 +158,7 @@ function guiExample.client_onSetupGui( self )
 	local function changeTabHighlight(item, self, tabSelected)
 		local oldHighlight = self.menu1_selected
 		self.menu1_selected = tabSelected
-		menu1.headers["menu1_option"..oldHighlight]:on_show(self)
+		menu1.headers["menu1_option"..oldHighlight]:on_show(self) -- reference based ('menu1') 
 		item:on_show(self)
 	end
 	
@@ -187,7 +189,14 @@ function guiExample.client_onSetupGui( self )
 	-- note: the 'tabcontrol' handles the 'clicking on a header causes these items to show up' behaviour on its own. 'setVisibleTab' is just a way for the modder to control it.
 	
 	
-	menu1:addItemWithId("menu1_option1", menu1_headerButton1, GlobalGUI.button(bgx + 300, bgy + 200, 200, 50, "BLOW EVERYTHING UP"))
+	
+	local menu1_option2_submenu = GlobalGUI.tabControl({},{})
+	
+	
+	
+	
+	
+	menu1:addItemWithId("menu1_option1", menu1_headerButton1, GlobalGUI.button(bgx + 300, bgy + 175, 600, 325, "BLOW EVERYTHING UP"))
 	menu1:addItemWithId("menu1_option2", menu1_headerButton2, GlobalGUI.buttonSmall(bgx + 350, bgy + 200, 200, 50, "dummy2"))
 	menu1:addItemWithId("menu1_option3", menu1_headerButton3, GlobalGUI.buttonSmall(bgx + 400, bgy + 200, 200, 50, "dummy3"))
 	
