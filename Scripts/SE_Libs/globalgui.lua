@@ -130,7 +130,7 @@
 --	  Returns: that item (optionItem)
 --
 -- optionMenu.setVisible(self, visible) -- set visibility
---	
+-- 
 -- *UserData* optionMenu: items (table) contains all the (option)items
 
 -- optionItem    --(created by optionMenu, referencable: optionMenu.items[n] or by saving the return value of optionMenu.addItem)
@@ -166,7 +166,7 @@ function guiClass.client_onUpdate(self, dt) end
 function guiClass.wasCreated(self, gui)
 	-- only the remote shape can initialize a global gui:
 	if (self.shape.worldPosition - sm.vec3.new(0,0,2000)):length()>100 then
-		devPrint("not remote shape")
+		--devPrint("not remote shape") -- annoying obvious message
 		return true-- too far from remoteguiposition, this block cannot initialize gui
 	elseif (gui and gui.instantiated) then -- kill duplicate remote gui blocks
 		devPrint("found duped remote") 
@@ -287,9 +287,13 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 			if guiBuilder.on_click then guiBuilder.on_click(widget) end
 			if guiBuilder.items[id].onClick then guiBuilder.items[id]:onClick(widget.id, parentClassInstance) end
 		end
-		--Copyright (c) 2019 Brent Batch--
+		local Copyright = "(c) 2019 Brent Batch"
 		for k, v in pairs(servercalls) do -- executes caught servercalls in the current scriptRef.
-			self.network:sendToServer("server__network_function", v) 
+			if not parentClass[v[1]] then 
+				sm.log.error("lua server request - Callback does not exist: '"..v[1].."'")
+			else
+				self.network:sendToServer("server__network_function", v)
+			end
 			table.remove(servercalls,k) 
 		end
 	end
@@ -547,7 +551,7 @@ function GlobalGUI.label(posX, posY, width, height, value, onclick_callback, on_
 	
 	posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
-	--Copyright (c) 2019 Brent Batch--
+	local Copyright = "(c) 2019 Brent Batch"
 	local extra = (border == false and 10 or 0)
 	local item = {}
 	item.visible = true
@@ -915,6 +919,7 @@ function GlobalGUI.collection(items)
 		end
 		return widgetids
 	end
+	local Copyright = "(c) 2019 Brent Batch"
 	function item.onClick(self, widgetid, parentClassInstance)
 		local currentTick = sm.game.getCurrentTick()
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection

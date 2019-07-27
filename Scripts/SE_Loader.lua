@@ -18,8 +18,9 @@ DebuggerLoads = (DebuggerLoads or 0) + 1
 -- don't move relative position of this code --
 
 
-if __SE_Loaded == true then return end
+if __SE_Loaded then return end
 __SE_Loaded = true
+print("Loading Scrap Essentials Libraries")
 
 se = se or {} -- single mod env
 

@@ -6,7 +6,7 @@ if guiExample and not sm.isDev then -- increases performance for non '-dev' user
 	return -- perform sm.checkDev(shape) in server_onCreate to set sm.isDev
 end 
  
-
+  
 guiExample = class(guiClass) -- important !
 guiExample.maxChildCount = -1
 guiExample.maxParentCount = -1
@@ -39,10 +39,13 @@ end
 function guiExample.client_onSetupGui( self )
 	if self:wasCreated(guiExample_GUI) then return end -- only allow remote shape to create a gui
 	
+	local annoyingPrints = false
 	
 	local gui_on_show_functions = {
 		function(guiself, self)
-			print("part",self.shape,"opened gui \""..guiself.title.."\" at location",self.shape.worldPosition)
+			if annoyingPrints then
+				print("part",self.shape,"opened gui \""..guiself.title.."\" at location",self.shape.worldPosition) 
+			end
 		end
 	}
 	
@@ -51,8 +54,10 @@ function guiExample.client_onSetupGui( self )
 		"GUI - TEST", -- title
 		1100, -- width
 		700, -- height
-		function(guiself, self) -- on_hide  
-			print("part",self.shape,"closed gui \""..guiself.title.."\" at location",self.shape.worldPosition)
+		function(guiself, self) -- on_hide
+			if annoyingPrints then
+				print("part",self.shape,"closed gui \""..guiself.title.."\" at location",self.shape.worldPosition)
+			end
 		end,
 		function(guiself, dt) -- on_update  (happens per frame) (you can also put 'nil' instead of 'function(guiself, dt) end'  )
 		end,
@@ -188,27 +193,37 @@ function guiExample.client_onSetupGui( self )
 	-- custom menu highlighting and per part tab selection />
 	-- note: the 'tabcontrol' handles the 'clicking on a header causes these items to show up' behaviour on its own. 'setVisibleTab' is just a way for the modder to control it.
 	
-	
+	local dummy = GlobalGUI.buttonSmall( 0, 0, 600, 90, "dummy")
 	
 	local menu1_option2_submenu = GlobalGUI.tabControl({},{})
+	
+	local menu1_option2_header1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 160, 300, 50, "Header2 subheader1")
+	local menu1_option2_header2 = GlobalGUI.buttonSmall(bgx + 600, bgy + 160, 300, 50, "Header2 subheader2")
+	
+	menu1_option2_submenu:addItemWithId("menu1_option2_header1", menu1_option2_header1, dummy)
+	menu1_option2_submenu:addItemWithId("menu1_option2_header2", menu1_option2_header2, dummy)
+	
+	
+	
+	
 	
 	
 	menu1:addItemWithId("menu1_option1", menu1_headerButton1, GlobalGUI.button(bgx + 300, bgy + 175, 600, 325, "BLOW EVERYTHING UP", 
 			function(item, self)
-				guiExample_GUI:sendToServer("server_DestroyALL", nil --[[supports data too, which can be anything]])
-			end
+				guiExample_GUI:sendToServer("server_button_click", "any data here, table, boolean, number, whatever rly")
+			end 
 		)
-	)
-	menu1:addItemWithId("menu1_option2", menu1_headerButton2, GlobalGUI.buttonSmall(bgx + 350, bgy + 200, 200, 50, "dummy2"))
+	) 
+	menu1:addItemWithId("menu1_option2", menu1_headerButton2, menu1_option2_submenu)
 	menu1:addItemWithId("menu1_option3", menu1_headerButton3, GlobalGUI.buttonSmall(bgx + 400, bgy + 200, 200, 50, "dummy3"))
 	
-	guiExample_GUI:addItemWithId("tabControl1", menu1)
-	
-	
+	guiExample_GUI:addItemWithId("tabControl1", menu1) -- !!! add the items to menu1 first before adding menu1 to the gui !!!!!!
 end
 
+
 function guiExample.server_button_click(self, data)
-	print('serverclick', data)
+	print('server_button_click_function_printing_stuff  ', data)
+	-- function to explode stuff here
 end
 
 function guiExample.client_onInteract(self)
