@@ -213,7 +213,7 @@ function guiExample.client_onSetupGui( self )
 			for k, menuItems in pairs(menu1_option2_submenu.headers) do menuItems:on_show(self) end
 		end,
 		function(item, self)
-			item:setText(self.menu1_option2_selected == 2 and "#df7000Header2 subheader2" or "Header2 subheader2")
+			item:setText(self.menu1_option2_selected == 2 and "#df7000Header2 subheader2" or "Header2 subheader2") 
 		end)
 	
 	menu1_option2_submenu:addItemWithId("menu1_option2_header1", menu1_option2_header1, dummy)
