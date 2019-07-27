@@ -50,6 +50,7 @@ function sm.ImproveUserData_Server(self)
 	for k, improvement in pairs(sm.__SE_UserDataImprovements_Server or {}) do
 		improvement(self)
 	end
+	sm.__SE_UserDataImprovements_Server = {}
 end
 
 function sm.ImproveUserData_Client(self)
@@ -57,6 +58,7 @@ function sm.ImproveUserData_Client(self)
 	for k, improvement in pairs(sm.__SE_UserDataImprovements_Client or {}) do
 		improvement(self)
 	end
+	sm.__SE_UserDataImprovements_Client = {}
 end
 
 
