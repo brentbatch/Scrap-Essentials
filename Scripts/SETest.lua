@@ -148,8 +148,8 @@ function guiExample.client_onSetupGui( self )
 	
 	
 	
-	-- < the following menu setup adds highlighting and per part it remembers which menu is selected.
-	-- if you want the behaviour to be simpler (selected submenu is global):
+	-- < the following menu setup adds highlighting and per part it remembers which tab is selected.
+	-- if you want the behaviour to be simpler (selected tab is global):
 	--	 simpler behaviour: select header2 in 1 part , exit gui, go to another part and header2 will also be selected instead of default header1 
 	--   code change for this: you can remove the on_show and on_click definitions in the following 30-ish lines of code untill '/>' )
 	
@@ -167,7 +167,7 @@ function guiExample.client_onSetupGui( self )
 			changeTabHighlight(item, self, 1)
 		end, 
 		function(item, self) -- on_show
-			menu1:setVisibleTab(true, "menu1_option"..self.menu1_selected) -- ' "menu1_option"..self.menu1_selected ' is the id you gave that tab when adding it using 'menu1:addItemWithId' later on in the code.
+			menu1:setVisibleTab(true, "menu1_option"..self.menu1_selected) -- ' "menu1_option"..self.menu1_selected ' is the id it gives that tab when adding it using 'menu1:addItemWithId' later on in the code.
 			item:setText( self.menu1_selected == 1 and "#df7000Header1" or "#eeeeeeHeader1")
 		end)
 	local menu1_headerButton2 = GlobalGUI.buttonSmall(bgx + 500, bgy + 100, 200, 50, "Header2", 
@@ -180,12 +180,12 @@ function guiExample.client_onSetupGui( self )
 	local menu1_headerButton3 = GlobalGUI.buttonSmall(bgx + 700, bgy + 100, 200, 50, "Header3", 
 		function(item, self) -- on_click
 			changeTabHighlight(item, self, 3)
-		end, 
+		end,
 		function(item, self) -- on_show
 			item:setText( self.menu1_selected == 3 and "#df7000Header3" or "#eeeeeeHeader3")
 		end)
-	  
-	-- custom menu highlighting and per part submenu selection />
+	   
+	-- custom menu highlighting and per part tab selection />
 	-- note: the 'tabcontrol' handles the 'clicking on a header causes these items to show up' behaviour on its own. 'setVisibleTab' is just a way for the modder to control it.
 	
 	
@@ -193,10 +193,12 @@ function guiExample.client_onSetupGui( self )
 	local menu1_option2_submenu = GlobalGUI.tabControl({},{})
 	
 	
-	
-	
-	
-	menu1:addItemWithId("menu1_option1", menu1_headerButton1, GlobalGUI.button(bgx + 300, bgy + 175, 600, 325, "BLOW EVERYTHING UP"))
+	menu1:addItemWithId("menu1_option1", menu1_headerButton1, GlobalGUI.button(bgx + 300, bgy + 175, 600, 325, "BLOW EVERYTHING UP", 
+			function(item, self)
+				guiExample_GUI:sendToServer("server_DestroyALL", nil --[[supports data too, which can be anything]])
+			end
+		)
+	)
 	menu1:addItemWithId("menu1_option2", menu1_headerButton2, GlobalGUI.buttonSmall(bgx + 350, bgy + 200, 200, 50, "dummy2"))
 	menu1:addItemWithId("menu1_option3", menu1_headerButton3, GlobalGUI.buttonSmall(bgx + 400, bgy + 200, 200, 50, "dummy3"))
 	
@@ -205,6 +207,9 @@ function guiExample.client_onSetupGui( self )
 	
 end
 
+function guiExample.server_button_click(self, data)
+	print('serverclick', data)
+end
 
 function guiExample.client_onInteract(self)
 	if not guiExample_GUI then print("Failed to open GUI") end

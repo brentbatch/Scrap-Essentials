@@ -273,6 +273,14 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 	guiBuilder.width, guiBuilder.height = guiBuilder.width/GlobalGUI.scaleX, guiBuilder.height/GlobalGUI.scaleY
 	
 	
+	local servercalls = {} -- this hack prevents scriptRef. errors
+	function guiBuilder.sendToServer(self, serverFunctionName, data)
+		table.insert(servercalls, {serverFunctionName, data})
+	end
+	function parentClass.server__network_function(self, superData)
+		self[superData[1]](self, superData[2])
+	end
+	
 	function parentClass.client_onclick(self, widget)
 		local itemids = guiBuilder.onClickRouteTable[widget.id]
 		for _, id in pairs(itemids) do
@@ -280,6 +288,10 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 			if guiBuilder.items[id].onClick then guiBuilder.items[id]:onClick(widget.id, parentClassInstance) end
 		end
 		--Copyright (c) 2019 Brent Batch--
+		for k, v in pairs(servercalls) do -- executes caught servercalls in the current scriptRef.
+			self.network:sendToServer("server__network_function", v) 
+			table.remove(servercalls,k) 
+		end
 	end
 	function parentClass.killview(self, widget) -- only bg items
 		devPrint("Removed GUI protectionLayer.")
