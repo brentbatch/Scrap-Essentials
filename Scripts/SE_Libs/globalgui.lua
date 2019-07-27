@@ -229,7 +229,7 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 	guiBuilder.bgPosY = (screenHeight - guiBuilder.height)/2
 		
 	do
-		local layer = sm.gui.load("ChallengeMessage.layout", true) -- add 1 invisible layer to create better gui loading /unloading
+		local layer = sm.gui.load("ChallengeMessage.layout") -- add 1 invisible layer to create better gui loading /unloading
 		sm.gui.widget.destroy(layer:find("MainPanel"))
 		layer:setPosition(guiBuilder.bgPosX, guiBuilder.bgPosY)
 		layer:setSize(guiBuilder.width, guiBuilder.height)
@@ -237,7 +237,7 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 		guiBuilder.onClickRouteTable[layer.id] = #guiBuilder.items --1
 	end
 	do
-        local layer = sm.gui.load("ChallengeMessage.layout", true) -- background
+        local layer = sm.gui.load("ChallengeMessage.layout") -- background
         layer:setPosition(guiBuilder.bgPosX, guiBuilder.bgPosY)
 		layer:setSize(guiBuilder.width, guiBuilder.height)
 		layer:bindOnClick("killview")
@@ -259,7 +259,7 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 		guiBuilder.onClickRouteTable[title.id] = #guiBuilder.items --2
 	end
 	for i=1,guiBuilder.protectionlayers do
-		local layer = sm.gui.load("ChallengeMessage.layout", true)
+		local layer = sm.gui.load("ChallengeMessage.layout")
 		layer:bindOnClick("killview")
 		sm.gui.widget.destroy(layer:find("MainPanel"))
 		layer:setPosition(guiBuilder.bgPosX, guiBuilder.bgPosY)
@@ -281,13 +281,7 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 		self[superData[1]](self, superData[2])
 	end
 	
-	function parentClass.client_onclick(self, widget)
-		local itemids = guiBuilder.onClickRouteTable[widget.id]
-		for _, id in pairs(itemids) do
-			if guiBuilder.on_click then guiBuilder.on_click(widget) end
-			if guiBuilder.items[id].onClick then guiBuilder.items[id]:onClick(widget.id, parentClassInstance) end
-		end
-		local Copyright = "(c) 2019 Brent Batch"
+	local function performNetworkCalls(self)
 		for k, v in pairs(servercalls) do -- executes caught servercalls in the current scriptRef.
 			if not parentClass[v[1]] then 
 				sm.log.error("lua server request - Callback does not exist: '"..v[1].."'")
@@ -296,6 +290,16 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 			end
 			table.remove(servercalls,k) 
 		end
+	end
+	
+	function parentClass.client_onclick(self, widget)
+		local itemids = guiBuilder.onClickRouteTable[widget.id]
+		for _, id in pairs(itemids) do
+			if guiBuilder.on_click then guiBuilder.on_click(widget) end
+			if guiBuilder.items[id].onClick then guiBuilder.items[id]:onClick(widget.id, parentClassInstance) end
+		end
+		local Copyright = "(c) 2019 Brent Batch"
+		performNetworkCalls(self)
 	end
 	function parentClass.killview(self, widget) -- only bg items
 		devPrint("Removed GUI protectionLayer.")
@@ -322,6 +326,7 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 		sm.shape.createPart( self.shape:getShapeUuid(), sm.vec3.new(0,0,2000), sm.quat.identity(), false, true ) 
 	end
 	
+	function parentClass.client_onFixedUpdate(self, dt) end
 	function parentClass.client_onUpdate(self, dt)
 		guiBuilder:update(dt)
 		if guiBuilder.on_update then guiBuilder:on_update(dt) end
@@ -348,8 +353,12 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 				if item.killNowUselessFunctions then item:killNowUselessFunctions() end 
 			end 
 		end 
+		performNetworkCalls(self)
 	end
-	function guiBuilder.hide(self) self:setVisible(false) end
+	function guiBuilder.hide(self) 
+		self:setVisible(false) 
+		performNetworkCalls(self) 
+	end
     function guiBuilder.setVisible(self, visible, nomessage)
 		assert(type(visible) == "boolean", "setVisible:visible: boolean expected! got: "..type(visible))
 		self.visible = visible
@@ -419,7 +428,7 @@ function GlobalGUI.button( posX, posY, width, height, value, onclick_callback, o
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("ChallengeMessage.layout", true)
+	item.gui = sm.gui.load("ChallengeMessage.layout")
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
 	
@@ -489,7 +498,7 @@ function GlobalGUI.buttonSmall(posX, posY, width, height, value, onclick_callbac
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("AudioOptions.layout", true)
+	item.gui = sm.gui.load("AudioOptions.layout")
 	item.gui:setPosition(posX, posY )
 	item.gui:setSize(width, height)
 	local buttonoffset = 300
@@ -557,7 +566,7 @@ function GlobalGUI.label(posX, posY, width, height, value, onclick_callback, on_
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("ChallengeMessage.layout", true)
+	item.gui = sm.gui.load("ChallengeMessage.layout")
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
 
@@ -623,7 +632,7 @@ function GlobalGUI.labelSmall( posX, posY, width, height, value, onclick_callbac
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("MessageGuiLoadingBar.layout", true)
+	item.gui = sm.gui.load("MessageGuiLoadingBar.layout")
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
 
@@ -687,7 +696,7 @@ function GlobalGUI.textBox( posX, posY, width, height, value, onclick_callback, 
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("NewGameMenu.layout", true)
+	item.gui = sm.gui.load("NewGameMenu.layout")
 	item.gui:find("NewMainPanel"):setPosition(0,-100)
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
@@ -748,7 +757,7 @@ function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.widget = sm.gui.load("ParticlePreview.layout", true)
+	item.widget = sm.gui.load("ParticlePreview.layout")
 
 	sm.gui.widget.destroy(item.widget:find("Background"))
 	item.widget:setPosition(posX , posY )
@@ -958,7 +967,7 @@ function GlobalGUI.optionMenu(posX, posY, width, height, on_show)
 	local item = {}
 	item.visible = true
 	item.on_show = on_show
-	item.gui = sm.gui.load("OptionsMenuPage.layout", true)
+	item.gui = sm.gui.load("OptionsMenuPage.layout")
 	item.gui:setSize(width, height)
 	item.gui:setPosition(posX, posY)
 	local mainPanel = item.gui:find("OptionsMenuPageMainPanel")

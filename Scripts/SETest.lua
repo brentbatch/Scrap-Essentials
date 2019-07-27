@@ -26,20 +26,21 @@ function guiExample.server_onFixedUpdate( self, dt )
 	end 
 	self.risingedge = os.time()%5 ~= 0
 end
-
+ 
 
   
 function guiExample.client_onCreate( self )
 	self.interactable:setUvFrameIndex(0)
 
 	self.menu1_selected = 1
-
+	self.menu1_option2_selected = 1
+	
 end
 
 function guiExample.client_onSetupGui( self )
 	if self:wasCreated(guiExample_GUI) then return end -- only allow remote shape to create a gui
 	
-	local annoyingPrints = false
+	local annoyingPrints = true
 	
 	local gui_on_show_functions = {
 		function(guiself, self)
@@ -132,11 +133,11 @@ function guiExample.client_onSetupGui( self )
 	
 	  
 	
-	local label1 = GlobalGUI.labelSmall(bgx + 90, bgy + 400, 120, 100, "Current State:\nAND", 
+	local label1 = GlobalGUI.labelSmall(bgx + 90, bgy + 350, 120, 100, "Current State:\nAND", 
 		nil, 
 		function(item, self)
 			item:setText("Current State:\n"..({"AND","OR","XOR"})[self.interactable:getUvFrameIndex() + 1])
-		end
+		end, nil, false 
 	)
 	
 	
@@ -173,21 +174,21 @@ function guiExample.client_onSetupGui( self )
 		end, 
 		function(item, self) -- on_show
 			menu1:setVisibleTab(true, "menu1_option"..self.menu1_selected) -- ' "menu1_option"..self.menu1_selected ' is the id it gives that tab when adding it using 'menu1:addItemWithId' later on in the code.
-			item:setText( self.menu1_selected == 1 and "#df7000Header1" or "#eeeeeeHeader1")
+			item:setText( self.menu1_selected == 1 and "#df7000Header1" or "Header1")
 		end)
 	local menu1_headerButton2 = GlobalGUI.buttonSmall(bgx + 500, bgy + 100, 200, 50, "Header2", 
 		function(item, self) -- on_click
 			changeTabHighlight(item, self, 2)
 		end,  
 		function(item, self) -- on_show
-			item:setText( self.menu1_selected == 2 and "#df7000Header2" or "#eeeeeeHeader2")
+			item:setText( self.menu1_selected == 2 and "#df7000Header2" or "Header2")
 		end)
 	local menu1_headerButton3 = GlobalGUI.buttonSmall(bgx + 700, bgy + 100, 200, 50, "Header3", 
 		function(item, self) -- on_click
 			changeTabHighlight(item, self, 3)
 		end,
 		function(item, self) -- on_show
-			item:setText( self.menu1_selected == 3 and "#df7000Header3" or "#eeeeeeHeader3")
+			item:setText( self.menu1_selected == 3 and "#df7000Header3" or "Header3")
 		end)
 	   
 	-- custom menu highlighting and per part tab selection />
@@ -197,15 +198,30 @@ function guiExample.client_onSetupGui( self )
 	
 	local menu1_option2_submenu = GlobalGUI.tabControl({},{})
 	
-	local menu1_option2_header1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 160, 300, 50, "Header2 subheader1")
-	local menu1_option2_header2 = GlobalGUI.buttonSmall(bgx + 600, bgy + 160, 300, 50, "Header2 subheader2")
+	local menu1_option2_header1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 160, 300, 50, "Header2 subheader1",
+		function(item, self)
+			self.menu1_option2_selected = 1
+			for k, menuItems in pairs(menu1_option2_submenu.headers) do menuItems:on_show(self) end
+		end,
+		function(item, self)
+			menu1_option2_submenu:setVisibleTab(true, "menu1_option2_header"..self.menu1_option2_selected)
+			item:setText(self.menu1_option2_selected == 1 and "#df7000Header2 subheader1" or "Header2 subheader1")
+		end)
+	local menu1_option2_header2 = GlobalGUI.buttonSmall(bgx + 600, bgy + 160, 300, 50, "Header2 subheader2",
+		function(item, self)
+			self.menu1_option2_selected = 2
+			for k, menuItems in pairs(menu1_option2_submenu.headers) do menuItems:on_show(self) end
+		end,
+		function(item, self)
+			item:setText(self.menu1_option2_selected == 2 and "#df7000Header2 subheader2" or "Header2 subheader2")
+		end)
 	
 	menu1_option2_submenu:addItemWithId("menu1_option2_header1", menu1_option2_header1, dummy)
 	menu1_option2_submenu:addItemWithId("menu1_option2_header2", menu1_option2_header2, dummy)
 	
 	
 	
-	
+	 
 	
 	
 	menu1:addItemWithId("menu1_option1", menu1_headerButton1, GlobalGUI.button(bgx + 300, bgy + 175, 600, 325, "BLOW EVERYTHING UP", 

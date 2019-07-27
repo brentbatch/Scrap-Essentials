@@ -3,7 +3,7 @@ local version = 1
 if (sm.__SE_Version._Body or 0) >= version then return end
 sm.__SE_Version._Body = version
 
-print("Bodies library loading...")
+print("Loading body library")
 
 local bodyCOMs = {}
 
