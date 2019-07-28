@@ -168,10 +168,16 @@ function guiClass.wasCreated(self, gui)
 	if (self.shape.worldPosition - sm.vec3.new(0,0,2000)):length()>100 then
 		--devPrint("not remote shape") -- annoying obvious message
 		return true-- too far from remoteguiposition, this block cannot initialize gui
-	elseif (gui and gui.instantiated) then -- kill duplicate remote gui blocks
-		devPrint("found duped remote") 
-		function self.server_onFixedUpdate(self, dt) self.shape:destroyShape(0) devPrint("destroyed dupe", self.shape.id) self.server_onFixedUpdate = nil end 
-		return true
+	elseif (gui and gui.instantiated) then
+		if not sm.exists(gui.items[1]) then -- not a dupe, screenResChange
+			devPrint("Gui broke (probably by screen res change)")
+			return false
+		else 
+			-- a dupe, kill it with fire (only host can kill dupes, not an issue)
+			devPrint("found duped remote") 
+			function self.server_onFixedUpdate(self, dt) self.shape:destroyShape(0) devPrint("destroyed dupe", self.shape.id) self.server_onFixedUpdate = nil end
+			return true
+		end
 	end
 	return false
 end
