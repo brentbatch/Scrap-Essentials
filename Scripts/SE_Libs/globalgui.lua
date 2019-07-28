@@ -193,14 +193,16 @@ GlobalGUI.scaleY = 1
 
 local parentClassInstance = nil
 
-function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update, on_show, protectionlayers, autoscale)  -- create new GLOBALGUI
+function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update, on_show, protectionlayers, autoscale, devScreenWidth, devScreenHeight)  -- create new GLOBALGUI
 	assert(type(parentClass) == "table", "parentClass: class expected! got: "..type(parentClass))
 	assert(type(title) == "string" or title == nil, "globalgui.create:Title: string expected! got: "..type(title))
 	assert(type(width) == "number" or width == nil, "globalgui.create:width: number expected! got: "..type(width))
 	assert(type(height) == "number" or height == nil, "globalgui.create:height: number expected! got: "..type(height))
 	assert(type(on_hide) == "function" or on_hide == nil, "globalgui.create:on_hide: function expected! got: "..type(on_hide))
 	assert(type(protectionlayers) == "number" or protectionlayers == nil, "globalgui.create:protectionlayers: number expected! got: "..type(protectionlayers))
-	
+	assert(type(devScreenWidth) == "number" or devScreenWidth == nil, "globalgui.create:devScreenWidth: number expected! got: "..type(devScreenWidth))
+    assert(type(devScreenHeight) == "number" or devScreenHeight == nil, "globalgui.create:devScreenHeight: number expected! got: "..type(devScreenHeight))
+    
 	local guiBuilder = {}
 	
 	guiBuilder.on_show = on_show
@@ -221,8 +223,8 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 	-- setup: 
 	local screenWidth, screenHeight = sm.gui.getScreenSize()
 	if (autoscale ~= nil) or autoscale then -- 'native' res = 1080p
-		GlobalGUI.scaleX = screenWidth/1920
-		GlobalGUI.scaleY = screenHeight/1080
+		GlobalGUI.scaleX = screenWidth / (devScreenWidth and devScreenWidth or 1920)
+		GlobalGUI.scaleY = screenHeight / (devScreenHeight and devScreenHeight or 1080)
 	end
 	guiBuilder.width, guiBuilder.height = guiBuilder.width*GlobalGUI.scaleX, guiBuilder.height*GlobalGUI.scaleY
 	guiBuilder.bgPosX = (screenWidth - guiBuilder.width)/2
