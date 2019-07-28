@@ -281,22 +281,13 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 	guiBuilder.width, guiBuilder.height = guiBuilder.width/GlobalGUI.scaleX, guiBuilder.height/GlobalGUI.scaleY
 	
 	
-	local servercalls = {} -- this hack prevents scriptRef. errors
-	function guiBuilder.sendToServer(self, serverFunctionName, data)
-		table.insert(servercalls, {serverFunctionName, data})
-	end
-	function parentClass.server__network_function(self, superData)
-		self[superData[1]](self, superData[2])
-	end
-	
-	local function performNetworkCalls(self)
-		for k, v in pairs(servercalls) do -- executes caught servercalls in the current scriptRef.
-			if not parentClass[v[1]] then 
-				sm.log.error("lua server request - Callback does not exist: '"..v[1].."'")
-			else
-				self.network:sendToServer("server__network_function", v)
-			end
-			table.remove(servercalls,k) 
+	function guiBuilder.sendToServer(self, serverFunctionName, data) -- this hack prevents scriptRef. errors
+		local old_onUpdate = parentClassInstance.client_onUpdate
+		
+		function parentClassInstance.client_onUpdate(self, dt)
+			self.network:sendToServer(serverFunctionName, data)
+			self.client_onUpdate = old_onUpdate
+			self:client_onUpdate(dt)
 		end
 	end
 	
@@ -307,7 +298,6 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 			if guiBuilder.items[id].onClick then guiBuilder.items[id]:onClick(widget.id, parentClassInstance) end
 		end
 		local Copyright = "(c) 2019 Brent Batch"
-		performNetworkCalls(self)
 	end
 	function parentClass.killview(self, widget) -- only bg items
 		devPrint("Removed GUI protectionLayer.")
@@ -360,12 +350,10 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 			for k, item in pairs(self.items) do 
 				if item.killNowUselessFunctions then item:killNowUselessFunctions() end 
 			end 
-		end 
-		performNetworkCalls(self)
+		end
 	end
 	function guiBuilder.hide(self) 
-		self:setVisible(false) 
-		performNetworkCalls(self) 
+		self:setVisible(false)
 	end
     function guiBuilder.setVisible(self, visible, nomessage)
 		assert(type(visible) == "boolean", "setVisible:visible: boolean expected! got: "..type(visible))
