@@ -8,10 +8,10 @@ print("Loading extra interactable functions")
 -- SERVER:
 
 local values = {} -- <<not directly accessible for other scripts
-function sm.interactable.setValue(interactable, value, type)
+function sm.interactable.setValue(interactable, ...)
 	local currenttick = sm.game.getCurrentTick()
 	values[interactable.id] = {
-		{tick = currenttick, value = {value, type}},
+		{tick = currenttick, value = {...}},
 		values[interactable.id] and (    
 			values[interactable.id][1] ~= nil and 
 			(values[interactable.id][1].tick < currenttick) and 
@@ -24,9 +24,9 @@ end
 function sm.interactable.getValue(interactable, NOW)
 	if sm.exists(interactable) and values[interactable.id] then
 		if values[interactable.id][1] and (values[interactable.id][1].tick < sm.game.getCurrentTick() or NOW) then
-			return values[interactable.id][1].value[1], values[interactable.id][1].value[2]
+			return unpack(values[interactable.id][1].value)
 		elseif values[interactable.id][2] then
-			return values[interactable.id][2][1], values[interactable.id][2][2]
+			return unpack(values[interactable.id][2])
 		end
 	end
 	return nil, nil
