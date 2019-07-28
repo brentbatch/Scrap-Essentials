@@ -1178,11 +1178,9 @@ function optionItem(widgetItem)
 		return widgetids
 	end
 	function item.onClick(self, widgetid, parentClassInstance)
-		
 		for _,button in pairs({self.label, self.decreaseButton, self.valueBox, self.increaseButton}) do
-			if button and button.widget.id == widgetid then 
-				sm.audio.play("GUI Inventory highlight", position)
-				button:onClick(parentClassInstance)
+			if button and button.widget.id == widgetid then
+				if button.onClick then button:onClick(parentClassInstance) end
 			end
 		end
 	end
