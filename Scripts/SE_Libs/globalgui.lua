@@ -1179,8 +1179,8 @@ function optionItem(widgetItem)
 	end
 	function item.onClick(self, widgetid, parentClassInstance)
 		for _,button in pairs({self.label, self.decreaseButton, self.valueBox, self.increaseButton}) do
-			if button and button.widget.id == widgetid then
-				if button.onClick then button:onClick(parentClassInstance) end
+			if button.onClick and button.widget.id == widgetid then
+				button:onClick(parentClassInstance)
 			end
 		end
 	end
