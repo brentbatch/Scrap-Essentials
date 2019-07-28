@@ -1089,12 +1089,11 @@ function optionItem(widgetItem)
 		}
 		return widget
 	end
-	function item.addDecreaseButton(self, posX, posY, width, height, name, onclick_callback)
+	function item.addDecreaseButton(self, posX, posY, width, height, onclick_callback)
 		assert(type(posX) == "number", "optionMenu.item.addDecreaseButton: posX, number expected! got: "..type(posX))
 		assert(type(posY) == "number", "optionMenu.item.addDecreaseButton: posY, number expected! got: "..type(posY))
 		assert(type(width) == "number", "optionMenu.item.addDecreaseButton: width, number expected! got: "..type(width))
 		assert(type(height) == "number", "optionMenu.item.addDecreaseButton: height, number expected! got: "..type(height))
-		assert(type(name) == "string", "optionMenu.item.addDecreaseButton: name, string expected! got: "..type(name))
 		assert(type(onclick_callback) == "function" or onclick_callback == nil, "optionMenu.item.addDecreaseButton: onclick_callback, function or nil expected! got: "..type(onclick_callback))
 		
 		posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
@@ -1102,7 +1101,6 @@ function optionItem(widgetItem)
 		local widget = self.gui:find("Decrease")
 		widget:setPosition(posX, posY)
 		widget:setSize(width, height)
-		widget:setText(name) -- can't really set text but whatever
 		widget.visible = true
 		widget:bindOnClick("client_onclick")
 		self.decreaseButton = {
@@ -1133,12 +1131,11 @@ function optionItem(widgetItem)
 		}
 		return widget
 	end
-	function item.addIncreaseButton(self, posX, posY, width, height, name, onclick_callback)
+	function item.addIncreaseButton(self, posX, posY, width, height, onclick_callback)
 		assert(type(posX) == "number", "optionMenu.item.addIncreaseButton: posX, number expected! got: "..type(posX))
 		assert(type(posY) == "number", "optionMenu.item.addIncreaseButton: posY, number expected! got: "..type(posY))
 		assert(type(width) == "number", "optionMenu.item.addIncreaseButton: width, number expected! got: "..type(width))
 		assert(type(height) == "number", "optionMenu.item.addIncreaseButton: height, number expected! got: "..type(height))
-		assert(type(name) == "string", "optionMenu.item.addIncreaseButton: name, string expected! got: "..type(name))
 		assert(type(onclick_callback) == "function" or onclick_callback == nil, "optionMenu.item.addIncreaseButton: onclick_callback, function or nil expected! got: "..type(onclick_callback))
 		
 		posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
@@ -1146,7 +1143,6 @@ function optionItem(widgetItem)
 		local widget = self.gui:find("Increase")
 		widget:setPosition(posX, posY)
 		widget:setSize(width, height)
-		widget:setText(name)
 		widget.visible = true
 		widget:bindOnClick("client_onclick")
 		self.increaseButton = {
