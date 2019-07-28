@@ -223,8 +223,8 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 	-- setup: 
 	local screenWidth, screenHeight = sm.gui.getScreenSize()
 	if (autoscale ~= nil) or autoscale then -- 'native' res = 1080p
-		GlobalGUI.scaleX = screenWidth / (devScreenWidth and devScreenWidth or 1920)
-		GlobalGUI.scaleY = screenHeight / (devScreenHeight and devScreenHeight or 1080)
+		GlobalGUI.scaleX = screenWidth / (devScreenWidth or 1920)
+		GlobalGUI.scaleY = screenHeight / (devScreenHeight or 1080)
 	end
 	guiBuilder.width, guiBuilder.height = guiBuilder.width*GlobalGUI.scaleX, guiBuilder.height*GlobalGUI.scaleY
 	guiBuilder.bgPosX = (screenWidth - guiBuilder.width)/2
