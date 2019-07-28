@@ -6,6 +6,9 @@ if guiExample_buttons and not sm.isDev then -- increases performance for non '-d
 	return -- perform sm.checkDev(shape) in server_onCreate to set sm.isDev
 end 
 
+
+-- exercise: Add extra functionality to this part: NAND, NOR and XNOR and a button to cycle the other way, be sure to to complete server and client side! 
+--		you can validate your solution by sending it to Brent Batch on any discord.
   
 guiExample_buttons = class(guiClass) -- important !
 guiExample_buttons.maxChildCount = -1
@@ -17,17 +20,15 @@ guiExample_buttons.colorHighlight = sm.color.new(0xef8010ff)
 guiExample_buttons.poseWeightCount = 1
 
 function guiExample_buttons.server_onCreate( self )
-	self.mode = self.storage:load() or 0 -- AND
+	self.mode = self.storage:load() or 0 -- load saved value from storage, if there is no value, use 0 (which is 'AND' mode)
 	
 	guiExample_buttons:createRemote(self) -- create remote shape to handle all gui stuff, only one remote shape will exist at a time.
 end
 
 function guiExample_buttons.server_onFixedUpdate( self, dt )
-	-- no server side code yet
-	if not sm.exists(self.interactable) then return end 
 	local parents = self.interactable:getParents()
 	
-	local output;
+	local output = false
 	if self.mode == 0 then	-- AND
 		output = #parents > 0 -- #parents = amount of parents, if there are more than 0 parents the output can be true
 		for k, parent in pairs(parents) do 
@@ -56,7 +57,7 @@ end
 function guiExample_buttons.server_SendModeToClients( self, newMode --[[optional]] )
 	if newMode then 
 		self.mode = newMode
-		self.storage:save(self.mode)
+		self.storage:save(self.mode) -- save to storage, can be loaded after part is loaded from lift or on world reload.
 	end
 	self.network:sendToClients("client_changeMode", self.mode)
 end
@@ -67,14 +68,14 @@ end
 -- clients:
 
 function guiExample_buttons.client_onCreate( self )
+	self.client_mode = 0
 	self.network:sendToServer("server_SendModeToClients") -- "request mode from server"
-	self.interactable:setUvFrameIndex(0)
 end
 
 function guiExample_buttons.client_onSetupGui( self )
-	if self:wasCreated(guiExample_buttons.GUI) then return end -- only allow remote shape to create a gui
+	if self:wasCreated(guiExample_buttons.GUI) then return end -- only allow remote shape to create ONE gui
 	
-	local annoyingPrints = false
+	local annoyingPrints = true
 	
 	local gui_on_show_functions = {
 		function(guiself, self)
@@ -111,7 +112,7 @@ function guiExample_buttons.client_onSetupGui( self )
 		'autoscale' (default true if left out or nil)	
 	]]
 	
-	local bgx, bgy = guiExample_buttons.GUI.bgPosX , guiExample_buttons.GUI.bgPosY
+	local bgx, bgy = guiExample_buttons.GUI.bgPosX , guiExample_buttons.GUI.bgPosY -- background pos x and y
 	
 	local button1 = GlobalGUI.buttonSmall(
 		bgx + 100, -- pos x
@@ -120,7 +121,7 @@ function guiExample_buttons.client_onSetupGui( self )
 		50, -- height
 		"AND",  -- value
 		function(item, self) -- on_click
-			self.interactable:setUvFrameIndex(0 + (self.interactable.active and 6 or 0))
+			self.client_mode = 0
 			guiExample_buttons.GUI:sendToServer("server_SendModeToClients", 0) -- so other clients also receive this new mode
 			guiExample_buttons.GUI.items.custombutton4:on_show(self)
 			guiExample_buttons.GUI.items.customlabel1:on_show(self)
@@ -133,7 +134,7 @@ function guiExample_buttons.client_onSetupGui( self )
 	
 	local button2 = GlobalGUI.buttonSmall(bgx + 250, bgy + 100, 100, 50, "OR", 
 		function(item, self) 
-			self.interactable:setUvFrameIndex(1 + (self.interactable.active and 6 or 0)) 
+			self.client_mode = 1
 			guiExample_buttons.GUI:sendToServer("server_SendModeToClients", 1)
 			guiExample_buttons.GUI.items.custombutton4:on_show(self)
 			guiExample_buttons.GUI.items.customlabel1:on_show(self)
@@ -145,7 +146,7 @@ function guiExample_buttons.client_onSetupGui( self )
 	
 	local button3 = GlobalGUI.buttonSmall(bgx + 400, bgy + 100, 100, 50, "XOR", 
 		function(item, self) 
-			self.interactable:setUvFrameIndex(2 + (self.interactable.active and 6 or 0)) 
+			self.client_mode = 2
 			guiExample_buttons.GUI:sendToServer("server_SendModeToClients", 2)
 			guiExample_buttons.GUI.items.custombutton4:on_show(self)
 			guiExample_buttons.GUI.items.customlabel1:on_show(self)
@@ -158,14 +159,14 @@ function guiExample_buttons.client_onSetupGui( self )
 		
 	local button4 = GlobalGUI.buttonSmall(bgx + 175, bgy + 200, 100, 50, "whatever", -- this button cycles between the modes
 		function(item, self) 
-			self.interactable:setUvFrameIndex(item.nextmode + (self.interactable.active and 6 or 0))
+			self.client_mode = item.nextmode
 			guiExample_buttons.GUI:sendToServer("server_SendModeToClients", item.nextmode)
-			item:on_show(self)
 			guiExample_buttons.GUI.items.customlabel1:on_show(self)
+			item:on_show(self)
 		end,
 		function(item, self)
-			item.nextmode = (self.interactable:getUvFrameIndex()%3 + 1)%3
-			item:setText( "next: "..({"AND","OR","XOR"})[item.nextmode + 1] )
+			item.nextmode = (self.client_mode + 1)%3
+			item:setText( "next: "..({"AND","OR","XOR"})[item.nextmode + 1] ) -- '+ 1' because lua tables start with index 1 instead of 0
 		end ,
 		"GUI Inventory highlight"
 	)
@@ -175,32 +176,29 @@ function guiExample_buttons.client_onSetupGui( self )
 	local label1 = GlobalGUI.labelSmall(bgx + 315, bgy + 175, 120, 100, "Current State:\nAND", 
 		nil, 
 		function(item, self)
-			item:setText("Current State:\n"..({"AND","OR","XOR"})[self.interactable:getUvFrameIndex()%3 + 1])
-		end, nil, false 
+			item:setText("Current State:\n"..({"AND","OR","XOR"})[self.client_mode + 1])
+		end, nil, false -- no border
 	)
 	
 	
 	guiExample_buttons.GUI:addItem(button1) -- the 'id' this 'addItem' function will use is 'button1.id' (some incremental gui widget number)
 	guiExample_buttons.GUI:addItem(button2)
 	guiExample_buttons.GUI:addItem(button3)
-	guiExample_buttons.GUI:addItemWithId("custombutton4", button4)
+	guiExample_buttons.GUI:addItemWithId("custombutton4", button4) -- we use 'addItemWithId' here so that the onClick callbacks can find these items more easily
 	guiExample_buttons.GUI:addItemWithId("customlabel1", label1)
 	
 end
 
 function guiExample_buttons.client_onUpdate(self, dt)
-	if not sm.exists(self.interactable) then return end
-	self.interactable:setUvFrameIndex(self.interactable:getUvFrameIndex()%3 + (self.interactable.active and 6 or 0)) 
+	self.interactable:setUvFrameIndex(self.client_mode + (self.interactable.active and 6 or 0)) 
 	self.interactable:setPoseWeight(0, self.interactable.active and 1 or 0)
 end
 
 function guiExample_buttons.client_changeMode(self, mode)
-	self.interactable:setUvFrameIndex(mode + (self.interactable.active and 6 or 0))
+	self.client_mode = mode -- if you want to save the mode on the client, don't name it self.mode because 'self' is shared between server and client on the host.
 	
-	-- if you want to safe mode on client, don't name it self.mode because 'self' is shared between server and client on the host.
-	-- i'm simply using uvframeindex to 'safe' the mode.
 	if guiExample_buttons.GUI and guiExample_buttons.GUI.visible then
-		guiExample_buttons.GUI:show(self) -- run all the 'on_show' callbacks again.
+		guiExample_buttons.GUI:show(self) -- run all the 'on_show' callbacks again so your client gets updated item values from another client that updated the mode.
 	end
 end
 
