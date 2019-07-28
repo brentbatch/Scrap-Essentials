@@ -161,7 +161,7 @@ function sm.body.getCreationMOI(in_body, in_axis)
 	return in_axis.x * (in_axis.x * inertia.xx + in_axis.y * inertia.xy + in_axis.z * inertia.xz) + in_axis.y * (in_axis.x * inertia.xy + in_axis.y * inertia.yy + in_axis.z * inertia.yz) + in_axis.z * (in_axis.x * inertia.xz + in_axis.y * inertia.yz + in_axis.z * inertia.zz)
 end
 
-table.insert(__SE_UserDataImprovements_Server, function(self)
+table.insert(sm.__SE_UserDataImprovements_Server, function(self)
 	self.shape.body.getCOM = function(body) return sm.body.getCOM(body) end
 	self.shape.body.getCreationCOM = function(body) return sm.body.getCreationCOM(body) end
 	self.shape.body.getMOI = function(body, _1) return sm.body.getMOI(body, _1) end
