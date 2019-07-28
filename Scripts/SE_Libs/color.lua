@@ -82,8 +82,8 @@ function sm.color.toHSV( rgba )
 	assert(type(rgba) == "Color", "toHSV: argument 1, Color expected! got: "..type(rgba))
 
 	local __HSV_Cases = {
-		["r"] = function( rgb, delta ) return 60 * (((rgb.g - rgb.b) / delta) % 6) end
-		["g"] = function( rgb, delta ) return 60 * (((rgb.b - rgb.r) / delta) + 2) end
+		["r"] = function( rgb, delta ) return 60 * (((rgb.g - rgb.b) / delta) % 6) end,
+		["g"] = function( rgb, delta ) return 60 * (((rgb.b - rgb.r) / delta) + 2) end,
 		["b"] = function( rgb, delta ) return 60 * (((rgb.r - rgb.g) / delta) + 4) end
 	}
 
@@ -108,11 +108,11 @@ function sm.color.toRGB( hsv )
 	assert(type(hsv) == "table" and hsv.h ~= nil and hsv.s ~= nil and hsv.v ~= nil, "toRGB: argument 1, HSV expected! got: "..type(hsv))
 
 	local __RGB_Cases = {
-		[0] = function( C, X ) return { r = C, g = X, b = 0 } end
-		[1] = function( C, X ) return { r = X, g = C, b = 0 } end
-		[2] = function( C, X ) return { r = 0, g = C, b = X } end
-		[3] = function( C, X ) return { r = 0, g = X, b = C } end
-		[4] = function( C, X ) return { r = X, g = 0, b = C } end
+		[0] = function( C, X ) return { r = C, g = X, b = 0 } end,
+		[1] = function( C, X ) return { r = X, g = C, b = 0 } end,
+		[2] = function( C, X ) return { r = 0, g = C, b = X } end,
+		[3] = function( C, X ) return { r = 0, g = X, b = C } end,
+		[4] = function( C, X ) return { r = X, g = 0, b = C } end,
 		[5] = function( C, X ) return { r = C, g = 0, b = X } end
 	}
 
