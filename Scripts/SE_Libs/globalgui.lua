@@ -1,11 +1,12 @@
  
 ----------------------------------
 --Copyright (c) 2019 Brent Batch--
+--     Free to use for all      --
 ----------------------------------
 
 -- API DOC:    -- all functions are *ClientMethod* 
 --
--- gui = sm.globalgui.create(parentClass, title, width, height, on_hide, on_update, protectionlayers, autoscale)
+-- gui = GlobalGUI.create(parentClass, title, width, height, on_hide, on_update, protectionlayers, autoscale)
 -- 		 will create a new gui. 
 -- 		
 --			Arguments: 
@@ -53,9 +54,9 @@
 
 -->>>>>>>>>> all BASIC ITEMS: 
 
--- sm.globalgui.button, sm.globalgui.buttonSmall, sm.globalgui.label, sm.globalgui.labelSmall, sm.globalgui.textBox, sm.globalgui.invisibleBox
+-- GlobalGUI.button, GlobalGUI.buttonSmall, GlobalGUI.label, GlobalGUI.labelSmall, GlobalGUI.textBox, GlobalGUI.invisibleBox
 --
--- sm.globalgui.button(posX, posY, width, height, value, onclick_callback, play_sound, border)
+-- GlobalGUI.button(posX, posY, width, height, value, onclick_callback, play_sound, border)
 --  	 creates a new item, you can add these items to the guiBuilder instance or to a 'special item'
 --  		Arguments: 
 --					* posX (number) - the x position on the screen, add bgposx if you want relative from the background
@@ -85,7 +86,7 @@
 
 -->>>>>>>>>>>> SPECIAL ITEMS:
 
--- sm.globalgui.collection(items)
+-- GlobalGUI.collection(items)
 --   creates a collection of items inside this item, can be used for the tabControll subitems or to nest stuff
 --  Arguments: * items (table) - a list of items
 --   
@@ -97,7 +98,7 @@
 
 
 
--- sm.globalgui.tabControl(headers, items)
+-- GlobalGUI.tabControl(headers, items)
 --    creates a new tabcontrol , clicking the headers will show the appropriate item
 --   Arguments: * headers (table) - a table of items that will act as headers when clicking on them (use items for these , line them up next to each other or sth)
 --              * items (table) - a table of items  (header with index 1 will show the item with index 1) (item 1 can be an item of the type 'collection')
@@ -113,7 +114,7 @@
 
 
 
--- sm.globalgui.optionMenu(posX, posY, width, height)
+-- GlobalGUI.optionMenu(posX, posY, width, height)
 --   creates a new optionsMenu (arrowbuttons and stuff) , better performance than adding several buttonSmall
 --  Arguments: * posX (number) - the x position of the options menu on screen (add bgPosX to line up inside the background)
 --			   * posY (number) - the y position of the options menu on screen (add bgPosY to line up inside the background)
@@ -129,7 +130,7 @@
 --	  Returns: that item (optionItem)
 --
 -- optionMenu.setVisible(self, visible) -- set visibility
---	
+-- 
 -- *UserData* optionMenu: items (table) contains all the (option)items
 
 -- optionItem    --(created by optionMenu, referencable: optionMenu.items[n] or by saving the return value of optionMenu.addItem)
@@ -150,31 +151,38 @@
 -- NOTE: for setText() and getText(), reference the widget: optionMenu.items[1].label.widget:setText("lolol")
 
 
-if not debugmode then debugmode = function() return false end end
-if not debug then debug = function(...) end end
 
-if sm.globalguiVersion and (sm.globalguiVersion <= 2.0) and not debugmode() then return end
-sm.globalguiVersion = 2.0
+if GlobalGUI and not sm.isDev then return end
+print("Loading GlobalGUI Library")
 
---  == GLOBALGUI ==
-sm.globalgui = {}
-sm.globalgui.scaleX = 1
-sm.globalgui.scaleY = 1
 
-function sm.globalgui.wasCreated(self, gui)
+if not devPrint then devPrint = function(...) end end -- if loaded, Debugger.lua creates this function
+
+guiClass = class()
+function guiClass.server_onRefresh(self) sm.isDev = true end
+function guiClass.client_onRefresh(self) end
+function guiClass.client_onUpdate(self, dt) end
+
+function guiClass.wasCreated(self, gui)
 	-- only the remote shape can initialize a global gui:
 	if (self.shape.worldPosition - sm.vec3.new(0,0,2000)):length()>100 then
-		debug("not remote shape")
+		--devPrint("not remote shape") -- annoying obvious message
 		return true-- too far from remoteguiposition, this block cannot initialize gui
-	elseif (gui and gui.instantiated) then -- kill duplicate remote gui blocks
-		debug("duped remote ") 
-		function self.server_onFixedUpdate(self, dt) self.shape:destroyShape(0) debug("destroyed dupe", self.shape.id) self.server_onFixedUpdate = nil end 
-		return true
+	elseif (gui and gui.instantiated) then
+		if not sm.exists(gui.items[1]) then -- not a dupe, screenResChange
+			devPrint("Gui broke (probably by screen res change)")
+			return false
+		else 
+			-- a dupe, kill it with fire (only host can kill dupes, not an issue)
+			devPrint("found duped remote") 
+			function self.server_onFixedUpdate(self, dt) self.shape:destroyShape(0) devPrint("destroyed dupe", self.shape.id) self.server_onFixedUpdate = nil end
+			return true
+		end
 	end
 	return false
 end
 
-function sm.globalgui.createRemote(scriptclass, self)
+function guiClass.createRemote(scriptclass, self)
     if not scriptclass.createdgui and (self.shape.worldPosition - sm.vec3.new(0,0,2000)):length()>100 then
 		scriptclass.createdgui = true 
 		local uuid = self.shape:getShapeUuid() 
@@ -182,24 +190,35 @@ function sm.globalgui.createRemote(scriptclass, self)
 	end
 end
 
-function sm.globalgui.create(parentClass, title, width, height, on_hide, on_update, on_show, protectionlayers, autoscale)  -- create new GLOBALGUI
+
+
+--  == GLOBALGUI ==
+GlobalGUI = {}
+GlobalGUI.scaleX = 1
+GlobalGUI.scaleY = 1
+
+local parentClassInstance = nil
+
+function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update, on_show, protectionlayers, autoscale, devScreenWidth, devScreenHeight)  -- create new GLOBALGUI
 	assert(type(parentClass) == "table", "parentClass: class expected! got: "..type(parentClass))
 	assert(type(title) == "string" or title == nil, "globalgui.create:Title: string expected! got: "..type(title))
 	assert(type(width) == "number" or width == nil, "globalgui.create:width: number expected! got: "..type(width))
 	assert(type(height) == "number" or height == nil, "globalgui.create:height: number expected! got: "..type(height))
 	assert(type(on_hide) == "function" or on_hide == nil, "globalgui.create:on_hide: function expected! got: "..type(on_hide))
 	assert(type(protectionlayers) == "number" or protectionlayers == nil, "globalgui.create:protectionlayers: number expected! got: "..type(protectionlayers))
-	
+	assert(type(devScreenWidth) == "number" or devScreenWidth == nil, "globalgui.create:devScreenWidth: number expected! got: "..type(devScreenWidth))
+    assert(type(devScreenHeight) == "number" or devScreenHeight == nil, "globalgui.create:devScreenHeight: number expected! got: "..type(devScreenHeight))
+    
 	local guiBuilder = {}
 	
+	guiBuilder.on_show = on_show
 	guiBuilder.on_hide = on_hide or (function() end)
 	guiBuilder.on_update = on_update
-	guiBuilder.on_show = on_show
 	--guiBuilder.on_click = () -- can be set by user
 	guiBuilder.title = title or ""
 	guiBuilder.width = width or 600
 	guiBuilder.height = height or 300
-	guiBuilder.protectionlayers = protectionlayers or 10
+	guiBuilder.protectionlayers = protectionlayers or 50
 	guiBuilder.killedlayers = 0
 	guiBuilder.visible = false
 	guiBuilder.instantiated = true
@@ -210,15 +229,15 @@ function sm.globalgui.create(parentClass, title, width, height, on_hide, on_upda
 	-- setup: 
 	local screenWidth, screenHeight = sm.gui.getScreenSize()
 	if (autoscale ~= nil) or autoscale then -- 'native' res = 1080p
-		sm.globalgui.scaleX = screenWidth/1920
-		sm.globalgui.scaleY = screenHeight/1080
+		GlobalGUI.scaleX = screenWidth / (devScreenWidth or 1920)
+		GlobalGUI.scaleY = screenHeight / (devScreenHeight or 1080)
 	end
-	guiBuilder.width, guiBuilder.height = guiBuilder.width*sm.globalgui.scaleX, guiBuilder.height*sm.globalgui.scaleY
+	guiBuilder.width, guiBuilder.height = guiBuilder.width*GlobalGUI.scaleX, guiBuilder.height*GlobalGUI.scaleY
 	guiBuilder.bgPosX = (screenWidth - guiBuilder.width)/2
 	guiBuilder.bgPosY = (screenHeight - guiBuilder.height)/2
 		
 	do
-		local layer = sm.gui.load("ChallengeMessage.layout", true) -- add 1 invisible layer to create better gui loading /unloading
+		local layer = sm.gui.load("ChallengeMessage.layout") -- add 1 invisible layer to create better gui loading /unloading
 		sm.gui.widget.destroy(layer:find("MainPanel"))
 		layer:setPosition(guiBuilder.bgPosX, guiBuilder.bgPosY)
 		layer:setSize(guiBuilder.width, guiBuilder.height)
@@ -226,7 +245,7 @@ function sm.globalgui.create(parentClass, title, width, height, on_hide, on_upda
 		guiBuilder.onClickRouteTable[layer.id] = #guiBuilder.items --1
 	end
 	do
-        local layer = sm.gui.load("ChallengeMessage.layout", true) -- background
+        local layer = sm.gui.load("ChallengeMessage.layout") -- background
         layer:setPosition(guiBuilder.bgPosX, guiBuilder.bgPosY)
 		layer:setSize(guiBuilder.width, guiBuilder.height)
 		layer:bindOnClick("killview")
@@ -248,7 +267,7 @@ function sm.globalgui.create(parentClass, title, width, height, on_hide, on_upda
 		guiBuilder.onClickRouteTable[title.id] = #guiBuilder.items --2
 	end
 	for i=1,guiBuilder.protectionlayers do
-		local layer = sm.gui.load("ChallengeMessage.layout", true)
+		local layer = sm.gui.load("ChallengeMessage.layout")
 		layer:bindOnClick("killview")
 		sm.gui.widget.destroy(layer:find("MainPanel"))
 		layer:setPosition(guiBuilder.bgPosX, guiBuilder.bgPosY)
@@ -257,32 +276,39 @@ function sm.globalgui.create(parentClass, title, width, height, on_hide, on_upda
 		guiBuilder.onClickRouteTable[layer.id] = #guiBuilder.items --i+1
 	end
 	
-	-- idiot fix for autoscale, as long as it works i guess....
-	guiBuilder.bgPosX, guiBuilder.bgPosY = guiBuilder.bgPosX/sm.globalgui.scaleX, guiBuilder.bgPosY/sm.globalgui.scaleY
-	guiBuilder.width, guiBuilder.height = guiBuilder.width/sm.globalgui.scaleX, guiBuilder.height/sm.globalgui.scaleY
+	-- idiot fix for autoscale on items, as long as it works i guess....
+	guiBuilder.bgPosX, guiBuilder.bgPosY = guiBuilder.bgPosX/GlobalGUI.scaleX, guiBuilder.bgPosY/GlobalGUI.scaleY
+	guiBuilder.width, guiBuilder.height = guiBuilder.width/GlobalGUI.scaleX, guiBuilder.height/GlobalGUI.scaleY
 	
 	
+	function guiBuilder.sendToServer(self, serverFunctionName, data) -- this hack prevents scriptRef. errors
+		local old_onUpdate = parentClassInstance.client_onUpdate
+		
+		function parentClassInstance.client_onUpdate(self, dt)
+			self.network:sendToServer(serverFunctionName, data)
+			self.client_onUpdate = old_onUpdate
+			self:client_onUpdate(dt)
+		end
+	end
 	
 	function parentClass.client_onclick(self, widget)
-		debug("gui click")
-		local currentTick = sm.game.getCurrentTick();
 		local itemids = guiBuilder.onClickRouteTable[widget.id]
 		for _, id in pairs(itemids) do
 			if guiBuilder.on_click then guiBuilder.on_click(widget) end
-			if guiBuilder.items[id].onClick then guiBuilder.items[id]:onClick(widget.id, currentTick) end
+			if guiBuilder.items[id].onClick then guiBuilder.items[id]:onClick(widget.id, parentClassInstance) end
 		end
-		--Copyright (c) 2019 Brent Batch--
+		local Copyright = "(c) 2019 Brent Batch"
 	end
 	function parentClass.killview(self, widget) -- only bg items
-		debug("gui killview")
+		devPrint("Removed GUI protectionLayer.")
 		local itemid = guiBuilder.onClickRouteTable[widget.id]
 		guiBuilder.items[itemid]:setVisible(false)
 		guiBuilder.items[itemid] = nil
 		guiBuilder.killedlayers = guiBuilder.killedlayers + 1
 		if guiBuilder.protectionlayers - guiBuilder.killedlayers < 11 then
 			if itemid == 3 then -- background broke
-				print('killed gui completely')
-				sm.gui.displayAlertText("GREAT, you killed the GUI.... bad boy!", 2)
+				--print('killed gui completely')
+				sm.gui.displayAlertText("GUI broke, closing and restoring gui.", 2)
 				guiBuilder:setVisible(false, true)
 				parentClass.client_onUpdate = nil
 				guiBuilder.instantiated = false
@@ -293,17 +319,18 @@ function sm.globalgui.create(parentClass, title, width, height, on_hide, on_upda
 		end
 	end
 	function parentClass.server_refreshgui(self)
-		debug("refreshgui")
+		devPrint("refreshgui")
 		sm.shape.destroyShape( self.shape, 0 )
 		sm.shape.createPart( self.shape:getShapeUuid(), sm.vec3.new(0,0,2000), sm.quat.identity(), false, true ) 
 	end
 	
+	function parentClass.client_onFixedUpdate(self, dt) end
 	function parentClass.client_onUpdate(self, dt)
 		guiBuilder:update(dt)
 		if guiBuilder.on_update then guiBuilder:on_update(dt) end
 	end
 	function parentClass.client_onRefresh(self)
-		debug("gui onrefresh")
+		devPrint("gui onrefresh")
 		parentClass.client_onUpdate = nil
 		if guiBuilder.visible then sm.gui.displayAlertText("gui reloaded, press 'e' again for interacts to work",6) end
 		guiBuilder:setVisible(false, true)
@@ -315,18 +342,19 @@ function sm.globalgui.create(parentClass, title, width, height, on_hide, on_upda
 	function parentClass.server_onFixedUpdate(self, dt) end
 	
 	local killedNowUselessFunctions = false
-	function guiBuilder.show(self) 
+	function guiBuilder.show(self, parentInstance)
+		parentClassInstance = parentInstance
 		self:setVisible(true) 
-		if self.on_show then self.on_show() end 
 		if not killedNowUselessFunctions then 
 			killedNowUselessFunctions = true
-			print("gui cleaned up!")
 			for k, item in pairs(self.items) do 
 				if item.killNowUselessFunctions then item:killNowUselessFunctions() end 
 			end 
-		end 
+		end
 	end
-	function guiBuilder.hide(self) self:setVisible(false) end
+	function guiBuilder.hide(self) 
+		self:setVisible(false)
+	end
     function guiBuilder.setVisible(self, visible, nomessage)
 		assert(type(visible) == "boolean", "setVisible:visible: boolean expected! got: "..type(visible))
 		self.visible = visible
@@ -334,10 +362,12 @@ function sm.globalgui.create(parentClass, title, width, height, on_hide, on_upda
 			item:setVisible(visible)
 		end
 		if not visible then
-			if self.on_hide then self.on_hide() end
+			if parentClassInstance and parentClassInstance.shape and sm.exists(parentClassInstance.shape) and self.on_hide then self:on_hide(parentClassInstance) end
 			if not nomessage then
 				sm.gui.displayAlertText("Press 'e' again, use 'e' to exit next time", 5)
 			end
+		else
+			if parentClassInstance and sm.exists(parentClassInstance.shape) and self.on_show then self:on_show(parentClassInstance) end 
 		end
 	end
 	
@@ -377,7 +407,7 @@ function AddToOnClickRouteTable(clickRouteTable, widgetId, itemId)
 	end
 end
 
-function sm.globalgui.button( posX, posY, width, height, value, onclick_callback, on_show, play_sound, border )
+function GlobalGUI.button( posX, posY, width, height, value, onclick_callback, on_show, play_sound, border )
 	assert(type(posX) == "number", "button: posX, number expected! got: "..type(posX))
 	assert(type(posY) == "number", "button: posY, number expected! got: "..type(posY))
 	assert(type(width) == "number", "button: width, number expected! got: "..type(width))
@@ -387,14 +417,14 @@ function sm.globalgui.button( posX, posY, width, height, value, onclick_callback
 	assert(type(play_sound) == "string" or play_sound == nil, "button: play_sound, string or nil expected! got: "..type(play_sound))
 	assert(type(border) == "boolean" or border == nil, "button: border, boolean or nil expected! got: "..type(border))
 	
-	posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+	posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 	local extra = (border == false and 10 or 0)
 	local item = {}
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("ChallengeMessage.layout", true)
+	item.gui = sm.gui.load("ChallengeMessage.layout")
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
 	
@@ -419,16 +449,17 @@ function sm.globalgui.button( posX, posY, width, height, value, onclick_callback
 		return {self.widget.id}
 	end
 	item.lastclick = 0
-	function item.onClick(self, widgetid, currentTick)
+	function item.onClick(self, widgetid, parentClassInstance)
+		local currentTick = sm.game.getCurrentTick()
 		if self.lastclick == currentTick then return end self.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click() end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -446,7 +477,7 @@ end
 
 
 
-function sm.globalgui.buttonSmall(posX, posY, width, height, value, onclick_callback, on_show, play_sound, border )
+function GlobalGUI.buttonSmall(posX, posY, width, height, value, onclick_callback, on_show, play_sound, border )
 	assert(type(posX) == "number", "buttonSmall: posX, number expected! got: "..type(posX))
 	assert(type(posY) == "number", "buttonSmall: posY, number expected! got: "..type(posY))
 	assert(type(width) == "number", "buttonSmall: width, number expected! got: "..type(width))
@@ -456,14 +487,14 @@ function sm.globalgui.buttonSmall(posX, posY, width, height, value, onclick_call
 	assert(type(play_sound) == "string" or play_sound == nil, "buttonSmall: play_sound, string or nil expected! got: "..type(play_sound))
 	assert(type(border) == "boolean" or border == nil, "buttonSmall: border, boolean or nil expected! got: "..type(border))
 	
-	posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+	posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 	local extra = (border == false and 10 or 0)
 	local item = {}
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("AudioOptions.layout", true)
+	item.gui = sm.gui.load("AudioOptions.layout")
 	item.gui:setPosition(posX, posY )
 	item.gui:setSize(width, height)
 	local buttonoffset = 300
@@ -488,16 +519,17 @@ function sm.globalgui.buttonSmall(posX, posY, width, height, value, onclick_call
 	function item.getClickRoutes(self)
 		return {self.widget.id}
 	end
-	function item.onClick(self, widgetid, currentTick)
+	function item.onClick(self, widgetid, parentClassInstance)
+		local currentTick = sm.game.getCurrentTick()
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click() end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 		
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -512,7 +544,7 @@ function sm.globalgui.buttonSmall(posX, posY, width, height, value, onclick_call
 end
 
 
-function sm.globalgui.label(posX, posY, width, height, value, onclick_callback, on_show, play_sound, border )	
+function GlobalGUI.label(posX, posY, width, height, value, onclick_callback, on_show, play_sound, border )	
 	assert(type(posX) == "number", "label: posX, number expected! got: "..type(posX))
 	assert(type(posY) == "number", "label: posY, number expected! got: "..type(posY))
 	assert(type(width) == "number", "label: width, number expected! got: "..type(width))
@@ -522,15 +554,15 @@ function sm.globalgui.label(posX, posY, width, height, value, onclick_callback, 
 	assert(type(play_sound) == "string" or play_sound == nil, "label: play_sound, string or nil expected! got: "..type(play_sound))
 	assert(type(border) == "boolean" or border == nil, "label: border, boolean or nil expected! got: "..type(border))
 	
-	posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+	posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
-	--Copyright (c) 2019 Brent Batch--
+	local Copyright = "(c) 2019 Brent Batch"
 	local extra = (border == false and 10 or 0)
 	local item = {}
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("ChallengeMessage.layout", true)
+	item.gui = sm.gui.load("ChallengeMessage.layout")
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
 
@@ -555,16 +587,17 @@ function sm.globalgui.label(posX, posY, width, height, value, onclick_callback, 
 	function item.getClickRoutes(self)
 		return {self.widget.id}
 	end
-	function item.onClick(self, widgetid, currentTick)
+	function item.onClick(self, widgetid, parentClassInstance)
+		local currentTick = sm.game.getCurrentTick()
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click() end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 		
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -578,7 +611,7 @@ function sm.globalgui.label(posX, posY, width, height, value, onclick_callback, 
 	return item
 end
 
-function sm.globalgui.labelSmall( posX, posY, width, height, value, onclick_callback, on_show, play_sound, border )
+function GlobalGUI.labelSmall( posX, posY, width, height, value, onclick_callback, on_show, play_sound, border )
 	assert(type(posX) == "number", "labelSmall: posX, number expected! got: "..type(posX))
 	assert(type(posY) == "number", "labelSmall: posY, number expected! got: "..type(posY))
 	assert(type(width) == "number", "labelSmall: width, number expected! got: "..type(width))
@@ -588,14 +621,14 @@ function sm.globalgui.labelSmall( posX, posY, width, height, value, onclick_call
 	assert(type(play_sound) == "string" or play_sound == nil, "labelSmall: play_sound, string or nil expected! got: "..type(play_sound))
 	assert(type(border) == "boolean" or border == nil, "labelSmall: border, boolean or nil expected! got: "..type(border))
 	
-	posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+	posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 	local extra = (border == false and 10 or 0)
 	local item = {}
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("MessageGuiLoadingBar.layout", true)
+	item.gui = sm.gui.load("MessageGuiLoadingBar.layout")
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
 
@@ -620,16 +653,17 @@ function sm.globalgui.labelSmall( posX, posY, width, height, value, onclick_call
 	function item.getClickRoutes(self)
 		return {self.widget.id}
 	end 
-	function item.onClick(self, widgetid, currentTick)
+	function item.onClick(self, widgetid, parentClassInstance)
+		local currentTick = sm.game.getCurrentTick()
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click() end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -643,7 +677,7 @@ function sm.globalgui.labelSmall( posX, posY, width, height, value, onclick_call
 	return item
 end
 
-function sm.globalgui.textBox( posX, posY, width, height, value, onclick_callback, on_show, play_sound ) -- no border here
+function GlobalGUI.textBox( posX, posY, width, height, value, onclick_callback, on_show, play_sound ) -- no border here
 	assert(type(posX) == "number", "textBox: posX, number expected! got: "..type(posX))
 	assert(type(posY) == "number", "textBox: posY, number expected! got: "..type(posY))
 	assert(type(width) == "number", "textBox: width, number expected! got: "..type(width))
@@ -652,13 +686,13 @@ function sm.globalgui.textBox( posX, posY, width, height, value, onclick_callbac
 	assert(type(onclick_callback) == "function" or onclick_callback == nil, "textBox: onclick_callback, function or nil expected! got: "..type(onclick_callback))
 	assert(type(play_sound) == "string" or play_sound == nil, "textBox: play_sound, string or nil expected! got: "..type(play_sound))
 	
-	posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+	posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 	local item = {}
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.gui = sm.gui.load("NewGameMenu.layout", true)
+	item.gui = sm.gui.load("NewGameMenu.layout")
 	item.gui:find("NewMainPanel"):setPosition(0,-100)
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
@@ -680,16 +714,17 @@ function sm.globalgui.textBox( posX, posY, width, height, value, onclick_callbac
 	function item.getClickRoutes(self)
 		return {self.widget.id}
 	end
-	function item.onClick(self, widgetid, currentTick)
+	function item.onClick(self, widgetid, parentClassInstance)
+		local currentTick = sm.game.getCurrentTick()
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click() end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.gui.visible = visible
 	end
@@ -704,7 +739,7 @@ function sm.globalgui.textBox( posX, posY, width, height, value, onclick_callbac
 end
 
 
-function sm.globalgui.invisibleBox( posX, posY, width, height, onclick_callback, on_show, play_sound ) -- no border, also no value
+function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on_show, play_sound ) -- no border, also no value
 	assert(type(posX) == "number", "invisibleBox: posX, number expected! got: "..type(posX))
 	assert(type(posY) == "number", "invisibleBox: posY, number expected! got: "..type(posY))
 	assert(type(width) == "number", "invisibleBox: width, number expected! got: "..type(width))
@@ -712,13 +747,13 @@ function sm.globalgui.invisibleBox( posX, posY, width, height, onclick_callback,
 	assert(type(onclick_callback) == "function" or onclick_callback == nil, "invisibleBox: onclick_callback, function or nil expected! got: "..type(onclick_callback))
 	assert(type(play_sound) == "string" or play_sound == nil, "invisibleBox: play_sound, string or nil expected! got: "..type(play_sound))
 	
-	posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+	posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 	local item = {}
 	item.visible = true
 	item.on_show = on_show
 	item.on_click = onclick_callback
-	item.widget = sm.gui.load("ParticlePreview.layout", true)
+	item.widget = sm.gui.load("ParticlePreview.layout")
 
 	sm.gui.widget.destroy(item.widget:find("Background"))
 	item.widget:setPosition(posX , posY )
@@ -733,16 +768,17 @@ function sm.globalgui.invisibleBox( posX, posY, width, height, onclick_callback,
 	function item.getClickRoutes(self)
 		return {self.widget.id}
 	end
-	function item.onClick(self, widgetid, currentTick)
+	function item.onClick(self, widgetid, parentClassInstance)
+		local currentTick = sm.game.getCurrentTick()
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		if play_sound then sm.audio.play(play_sound) end
-		if self.on_click then self.on_click() end
+		if self.on_click then self:on_click(parentClassInstance) end
 	end
 	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.visible = visible
 		self.widget.visible = visible
 	end
@@ -757,13 +793,15 @@ function sm.globalgui.invisibleBox( posX, posY, width, height, onclick_callback,
 end
 
 
-function sm.globalgui.tabControl(headers, items)
+function GlobalGUI.tabControl(headers, items, tabStateSetting, highlightColor, defaultColor)
 	assert(type(headers) == "table", "tabControl: headers, table expected! got: "..type(headers))
 	assert(type(items) == "table", "tabControl: items, table expected! got: "..type(items))
 	for k, v in pairs(headers) do assert(type(v) == "table", "tabControl: header, table expected! got: "..type(v)) end
 	for k, v in pairs(items) do assert(type(v) == "table", "tabControl: item, table expected! got: "..type(v)) end
 	for k, v in pairs(headers) do assert(v.getClickRoutes ~= nil, "tabControl: header, item expected! Not an item!") end
 	for k, v in pairs(items) do assert(v.getClickRoutes ~= nil, "tabControl: item, item expected! Not an item!") end
+	assert(type(highlightColor) == "string" or highlightColor == nil, "tabControl: highlightColor, string expected! got: "..type(highlightColor))
+	assert(type(defaultColor) == "string" or defaultColor == nil, "tabControl: defaultColor, string expected! got: "..type(defaultColor))
 	
 	local item = {}
 	item.id = headers and headers[1] and headers[1].id or nil
@@ -771,22 +809,34 @@ function sm.globalgui.tabControl(headers, items)
 	item.items = items -- { [1] = collection/item, [2] = collection/item, ... } NOW ALSO WITH CUSTOM IDS thanks to addItemWithId
 	item.visible = true
 	item.onClickRouteTable = {} 
-	item.currenttab = 1
+	item.currenttab = headers[1] and 1 or nil
+	item.tabStateSetting = tabStateSetting or false -- boolean or headerId, default false
+		-- false: global
+		-- true: per part
+		-- id: open that id
+		
+	item.highlightColor = highlightColor -- nil = don't do highlighting
+	item.defaultColor = defaultColor or "#ffffff"
+	
+	local partInstancesOpenedTabMemory = {}
+	
 	for k, v in pairs(item.headers) do
 		v.ItemType = "header"
 	end
 	
 	function item.addItem(self, newheader, newitem)
 		newheader.ItemType = "header"
-		table.insert(item.headers, newheader)
-		table.insert(item.items, newitem)
+		table.insert(self.headers, newheader)
+		table.insert(self.items, newitem)
 		self.id = self.id or newheader.id
+		self.currenttab = self.currenttab or 1
 	end
 	function item.addItemWithId(self, headerid, newheader, newitem)
 		newheader.ItemType = "header"
-		item.headers[headerid] = newheader
-		item.items[headerid] = newitem
+		self.headers[headerid] = newheader
+		self.items[headerid] = newitem
 		self.id = self.id or newheader.id
+		self.currenttab = self.currenttab or headerid
 	end
 	function item.killNowUselessFunctions(self)
 		self.killNowUselessFunctions = nil
@@ -803,7 +853,7 @@ function sm.globalgui.tabControl(headers, items)
 		local widgetids = {}
 		for contenttype , items in pairs({header = self.headers, item = self.items}) do -- loop over ALL items
 			for itemid, someitem in pairs(items) do
-				if contenttype == "header" and not someitem.onClick then someitem.widget:bindOnClick("client_onclick") end -- stupid lil extra
+				--if contenttype == "header" and not someitem.onClick then someitem.widget:bindOnClick("client_onclick") end -- stupid lil extra
 				
 				for _, widgetid in pairs(someitem:getClickRoutes()) do
 					AddToOnClickRouteTable(self.onClickRouteTable, widgetid, {itemid = itemid, contenttype = contenttype})
@@ -814,31 +864,51 @@ function sm.globalgui.tabControl(headers, items)
 		end
 		return widgetids
 	end
-	function item.onClick(self, widgetid, currentTick)
-		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
+	function item.onClick(self, widgetid, parentClassInstance)
+		local currentTick = sm.game.getCurrentTick()
+		if self.lastclick == currentTick then return end self.lastclick = currentTick -- protection
 		
 		local itemdatas = self.onClickRouteTable[widgetid]
 		for _, itemdata in pairs(itemdatas) do 
 			if itemdata.contenttype == "header" then
 				--sm.audio.play("GUI Inventory highlight") -- make this customizable ?
-				if self.headers[itemdata.itemid].onClick then self.headers[itemdata.itemid]:onClick(widgetid, currentTick) end
+				if self.headers[itemdata.itemid].onClick then self.headers[itemdata.itemid]:onClick(widgetid, parentClassInstance) end
 				self.currenttab = itemdata.itemid
 				self:setVisibleTab(true)
 			else
-				if self.items[itemdata.itemid].onClick then self.items[itemdata.itemid]:onClick(widgetid, currentTick) end
+				if self.items[itemdata.itemid].onClick then self.items[itemdata.itemid]:onClick(widgetid, parentClassInstance) end
 			end
 		end
 	end
 	function item.setVisible(self, visible)
 		self.visible = visible
-		for k, item in pairs(self.headers) do
+		for itemindex, item in pairs(self.headers) do
 			item:setVisible(visible)
+		end
+		if type(self.tabStateSetting) ~= "boolean" then -- specific tab reset is defined
+			self.currenttab = self.tabStateSetting
+		elseif self.tabStateSetting == true and parentClassInstance then -- load from part is true
+			self.currenttab = partInstancesOpenedTabMemory[parentClassInstance.interactable.id] or self.currenttab
 		end
 		self:setVisibleTab(visible)
 	end
 	
 	function item.setVisibleTab(self, visible, tab)
-		--self.currenttab = (tab and tab or self.currenttab) -- change tab if defined
+		self.currenttab = tab or self.currenttab -- change tab if defined
+		if self.tabStateSetting == true and parentClassInstance then -- save loaded tab
+			partInstancesOpenedTabMemory[parentClassInstance.interactable.id] = self.currenttab
+		end
+		for itemindex, item in pairs(self.headers) do
+			if self.highlightColor and item.setText then
+				if itemindex == self.currenttab then -- highlight
+					local oldText = item:getText()
+					item:setText(self.highlightColor .. (oldText:sub(0,1)=="#" and oldText:sub(8) or oldText))
+				else
+					local oldText = item:getText()
+					item:setText(self.defaultColor .. (oldText:sub(0,1)=="#" and oldText:sub(8) or oldText))
+				end
+			end
+		end
 		for itemindex, item in pairs(self.items) do
 			item:setVisible(itemindex == self.currenttab and visible)
 		end
@@ -847,7 +917,7 @@ function sm.globalgui.tabControl(headers, items)
 end
 
 
-function sm.globalgui.collection(items)
+function GlobalGUI.collection(items)
 	assert(type(items) == "table", "collection: items, table expected! got: "..type(items))
 	for k, v in pairs(items) do assert(type(v) == "table", "collection: items, table expected! got: "..type(v)) end
 	for k, v in pairs(items) do assert(v.getClickRoutes ~= nil, "collection: item, item expected! Not an item!") end
@@ -885,12 +955,14 @@ function sm.globalgui.collection(items)
 		end
 		return widgetids
 	end
-	function item.onClick(self, widgetid, currentTick)
+	local Copyright = "(c) 2019 Brent Batch"
+	function item.onClick(self, widgetid, parentClassInstance)
+		local currentTick = sm.game.getCurrentTick()
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		local itemids = self.onClickRouteTable[widgetid]
 		for _, itemid in pairs(itemids) do
-			if self.items[itemid].onClick then self.items[itemid]:onClick(widgetid, currentTick) end
+			if self.items[itemid].onClick then self.items[itemid]:onClick(widgetid, parentClassInstance) end
 			if self.items[itemid].playSound then self.items[itemid]:playSound() end
 		end
 	end
@@ -911,18 +983,18 @@ function itemTableSize(sometable)
 	return i 
 end
 
-function sm.globalgui.optionMenu(posX, posY, width, height, on_show)
+function GlobalGUI.optionMenu(posX, posY, width, height, on_show)
 	assert(type(posX) == "number", "optionMenu: posX, number expected! got: "..type(posX))
 	assert(type(posY) == "number", "optionMenu: posY, number expected! got: "..type(posY))
 	assert(type(width) == "number", "optionMenu: width, number expected! got: "..type(width))
 	assert(type(height) == "number", "optionMenu: height, number expected! got: "..type(height))
 	
-	posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+	posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 	local item = {}
 	item.visible = true
 	item.on_show = on_show
-	item.gui = sm.gui.load("OptionsMenuPage.layout", true)
+	item.gui = sm.gui.load("OptionsMenuPage.layout")
 	item.gui:setSize(width, height)
 	item.gui:setPosition(posX, posY)
 	local mainPanel = item.gui:find("OptionsMenuPageMainPanel")
@@ -939,7 +1011,7 @@ function sm.globalgui.optionMenu(posX, posY, width, height, on_show)
 		assert(type(width) == "number", "optionMenu.addItem: width, number expected! got: "..type(width))
 		assert(type(height) == "number", "optionMenu.addItem: height, number expected! got: "..type(height))
 		
-		posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+		posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 		local id = itemTableSize(self.items) + 1
 		local widgetItem = mainPanel:find("ITEM_" .. id)
@@ -958,7 +1030,7 @@ function sm.globalgui.optionMenu(posX, posY, width, height, on_show)
 		assert(type(width) == "number", "optionMenu.addItemWithId: width, number expected! got: "..type(width))
 		assert(type(height) == "number", "optionMenu.addItemWithId: height, number expected! got: "..type(height))
 		
-		posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+		posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 		local id = itemTableSize(self.items) + 1
 		local widgetItem = mainPanel:find("ITEM_" .. id)
@@ -992,14 +1064,15 @@ function sm.globalgui.optionMenu(posX, posY, width, height, on_show)
 		end
 		return widgetids
 	end
-	function item.onClick(self, widgetid, currentTick)
+	function item.onClick(self, widgetid, parentClassInstance)
+		local currentTick = sm.game.getCurrentTick()
 		if item.lastclick == currentTick then return end item.lastclick = currentTick -- protection
 		
 		local itemid = self.onClickRouteTable[widgetid]
-		self.items[itemid]:onClick(widgetid, currentTick)
+		self.items[itemid]:onClick(widgetid, parentClassInstance)
 	end
 	function item.setVisible(self, visible)
-		if visible and self.on_show then self.on_show() end
+		if visible and self.on_show then self:on_show(parentClassInstance) end
 		self.gui.visible = visible
 		self.visible = visible
 	end
@@ -1021,7 +1094,7 @@ function optionItem(widgetItem)
 		assert(type(name) == "string", "optionMenu.item.addLabel: name, string expected! got: "..type(name))
 		assert(type(onclick_callback) == "function" or onclick_callback == nil, "optionMenu.item.addLabel: onclick_callback, function or nil expected! got: "..type(onclick_callback))
 		
-		posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+		posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 		local widget = self.gui:find("Label")
 		widget:setPosition(posX, posY)
@@ -1035,20 +1108,18 @@ function optionItem(widgetItem)
 		}
 		return widget
 	end
-	function item.addDecreaseButton(self, posX, posY, width, height, name, onclick_callback)
+	function item.addDecreaseButton(self, posX, posY, width, height, onclick_callback)
 		assert(type(posX) == "number", "optionMenu.item.addDecreaseButton: posX, number expected! got: "..type(posX))
 		assert(type(posY) == "number", "optionMenu.item.addDecreaseButton: posY, number expected! got: "..type(posY))
 		assert(type(width) == "number", "optionMenu.item.addDecreaseButton: width, number expected! got: "..type(width))
 		assert(type(height) == "number", "optionMenu.item.addDecreaseButton: height, number expected! got: "..type(height))
-		assert(type(name) == "string", "optionMenu.item.addDecreaseButton: name, string expected! got: "..type(name))
 		assert(type(onclick_callback) == "function" or onclick_callback == nil, "optionMenu.item.addDecreaseButton: onclick_callback, function or nil expected! got: "..type(onclick_callback))
 		
-		posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+		posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 		local widget = self.gui:find("Decrease")
 		widget:setPosition(posX, posY)
 		widget:setSize(width, height)
-		widget:setText(name) -- can't really set text but whatever
 		widget.visible = true
 		widget:bindOnClick("client_onclick")
 		self.decreaseButton = {
@@ -1065,7 +1136,7 @@ function optionItem(widgetItem)
 		assert(type(name) == "string", "optionMenu.item.addValueBox: name, string expected! got: "..type(name))
 		assert(type(onclick_callback) == "function" or onclick_callback == nil, "optionMenu.item.addValueBox: onclick_callback, function or nil expected! got: "..type(onclick_callback))
 		
-		posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+		posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 		local widget = self.gui:find("Value")
 		widget:setPosition(posX, posY)
@@ -1079,20 +1150,18 @@ function optionItem(widgetItem)
 		}
 		return widget
 	end
-	function item.addIncreaseButton(self, posX, posY, width, height, name, onclick_callback)
+	function item.addIncreaseButton(self, posX, posY, width, height, onclick_callback)
 		assert(type(posX) == "number", "optionMenu.item.addIncreaseButton: posX, number expected! got: "..type(posX))
 		assert(type(posY) == "number", "optionMenu.item.addIncreaseButton: posY, number expected! got: "..type(posY))
 		assert(type(width) == "number", "optionMenu.item.addIncreaseButton: width, number expected! got: "..type(width))
 		assert(type(height) == "number", "optionMenu.item.addIncreaseButton: height, number expected! got: "..type(height))
-		assert(type(name) == "string", "optionMenu.item.addIncreaseButton: name, string expected! got: "..type(name))
 		assert(type(onclick_callback) == "function" or onclick_callback == nil, "optionMenu.item.addIncreaseButton: onclick_callback, function or nil expected! got: "..type(onclick_callback))
 		
-		posX, posY, width, height = posX*sm.globalgui.scaleX, posY*sm.globalgui.scaleY, width*sm.globalgui.scaleX, height*sm.globalgui.scaleY
+		posX, posY, width, height = posX*GlobalGUI.scaleX, posY*GlobalGUI.scaleY, width*GlobalGUI.scaleX, height*GlobalGUI.scaleY
 	
 		local widget = self.gui:find("Increase")
 		widget:setPosition(posX, posY)
 		widget:setSize(width, height)
-		widget:setText(name)
 		widget.visible = true
 		widget:bindOnClick("client_onclick")
 		self.increaseButton = {
@@ -1123,11 +1192,10 @@ function optionItem(widgetItem)
 		end
 		return widgetids
 	end
-	function item.onClick(self, widgetid)
+	function item.onClick(self, widgetid, parentClassInstance)
 		for _,button in pairs({self.label, self.decreaseButton, self.valueBox, self.increaseButton}) do
-			if button and button.widget.id == widgetid then 
-				sm.audio.play("GUI Inventory highlight", position)
-				button:onClick()
+			if button.onClick and button.widget.id == widgetid then
+				button:onClick(parentClassInstance)
 			end
 		end
 	end
@@ -1137,5 +1205,3 @@ function optionItem(widgetItem)
 	end
 	return item
 end
-
-print("GUI library", sm.globalguiVersion, "successfully loaded.")
