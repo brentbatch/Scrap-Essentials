@@ -793,13 +793,15 @@ function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on
 end
 
 
-function GlobalGUI.tabControl(headers, items, tabStateSetting)
+function GlobalGUI.tabControl(headers, items, tabStateSetting, highlightColor, defaultColor)
 	assert(type(headers) == "table", "tabControl: headers, table expected! got: "..type(headers))
 	assert(type(items) == "table", "tabControl: items, table expected! got: "..type(items))
 	for k, v in pairs(headers) do assert(type(v) == "table", "tabControl: header, table expected! got: "..type(v)) end
 	for k, v in pairs(items) do assert(type(v) == "table", "tabControl: item, table expected! got: "..type(v)) end
 	for k, v in pairs(headers) do assert(v.getClickRoutes ~= nil, "tabControl: header, item expected! Not an item!") end
 	for k, v in pairs(items) do assert(v.getClickRoutes ~= nil, "tabControl: item, item expected! Not an item!") end
+	assert(type(highlightColor) == "string" or highlightColor == nil, "tabControl: highlightColor, string expected! got: "..type(highlightColor))
+	assert(type(defaultColor) == "string" or defaultColor == nil, "tabControl: defaultColor, string expected! got: "..type(defaultColor))
 	
 	local item = {}
 	item.id = headers and headers[1] and headers[1].id or nil
@@ -808,12 +810,15 @@ function GlobalGUI.tabControl(headers, items, tabStateSetting)
 	item.visible = true
 	item.onClickRouteTable = {} 
 	item.currenttab = headers[1] and 1 or nil
-	item.tabStateSetting = tabStateSetting -- boolean or headerId
-	
-	local partInstancesOpenedTabMemory = {}
+	item.tabStateSetting = tabStateSetting or false -- boolean or headerId, default false
 		-- false: global
 		-- true: per part
 		-- id: open that id
+		
+	item.highlightColor = highlightColor -- nil = don't do highlighting
+	item.defaultColor = defaultColor or "#ffffff"
+	
+	local partInstancesOpenedTabMemory = {}
 	
 	for k, v in pairs(item.headers) do
 		v.ItemType = "header"
@@ -877,7 +882,7 @@ function GlobalGUI.tabControl(headers, items, tabStateSetting)
 	end
 	function item.setVisible(self, visible)
 		self.visible = visible
-		for k, item in pairs(self.headers) do
+		for itemindex, item in pairs(self.headers) do
 			item:setVisible(visible)
 		end
 		if type(self.tabStateSetting) ~= "boolean" then -- specific tab reset is defined
@@ -892,6 +897,17 @@ function GlobalGUI.tabControl(headers, items, tabStateSetting)
 		self.currenttab = tab or self.currenttab -- change tab if defined
 		if self.tabStateSetting == true and parentClassInstance then -- save loaded tab
 			partInstancesOpenedTabMemory[parentClassInstance.interactable.id] = self.currenttab
+		end
+		for itemindex, item in pairs(self.headers) do
+			if self.highlightColor and item.setText then
+				if itemindex == self.currenttab then -- highlight
+					local oldText = item:getText()
+					item:setText(self.highlightColor .. (oldText:sub(0,1)=="#" and oldText:sub(8) or oldText))
+				else
+					local oldText = item:getText()
+					item:setText(self.defaultColor .. (oldText:sub(0,1)=="#" and oldText:sub(8) or oldText))
+				end
+			end
 		end
 		for itemindex, item in pairs(self.items) do
 			item:setVisible(itemindex == self.currenttab and visible)

@@ -72,7 +72,7 @@ function guiExample_tabcontrol.client_onSetupGui( self )
 	--	 simpler behaviour: select header2 in 1 part , exit gui, go to another part and header2 will also be selected instead of default header1 
 	--   code change for this: you can remove the on_show and on_click definitions in the following 30-ish lines of code untill '/>' )
 	
-	local menu1 = GlobalGUI.tabControl({},{}, true) -- empty menu, no headers, no items (you can also use headers and items as parameters
+	local menu1 = GlobalGUI.tabControl({},{}, true, "#df7f00") -- empty menu, no headers, no items (you can also use headers and items as parameters
 	
 	do -- header 1
 		local menu1_headerButton1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 100, 200, 50, "Header1")
@@ -89,7 +89,7 @@ function guiExample_tabcontrol.client_onSetupGui( self )
 		local menu1_headerButton2 = GlobalGUI.buttonSmall(bgx + 500, bgy + 100, 200, 50, "Header2")
 		
 		
-		local menu1_option2_submenu = GlobalGUI.tabControl({},{}, true) 
+		local menu1_option2_submenu = GlobalGUI.tabControl({},{}, true, "#00ff00", "#ff0000") 
 		
 		local menu1_option2_header1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 160, 300, 50, "Header2 subheader1")
 		local menu1_option2_header2 = GlobalGUI.buttonSmall(bgx + 600, bgy + 160, 300, 50, "Header2 subheader2")
