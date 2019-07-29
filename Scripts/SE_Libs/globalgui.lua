@@ -793,7 +793,7 @@ function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on
 end
 
 
-function GlobalGUI.tabControl(headers, items)
+function GlobalGUI.tabControl(headers, items, tabStateSetting)
 	assert(type(headers) == "table", "tabControl: headers, table expected! got: "..type(headers))
 	assert(type(items) == "table", "tabControl: items, table expected! got: "..type(items))
 	for k, v in pairs(headers) do assert(type(v) == "table", "tabControl: header, table expected! got: "..type(v)) end
@@ -808,6 +808,13 @@ function GlobalGUI.tabControl(headers, items)
 	item.visible = true
 	item.onClickRouteTable = {} 
 	item.currenttab = headers[1] and 1 or nil
+	item.tabStateSetting = tabStateSetting -- boolean or headerId
+	
+	local partInstancesOpenedTabMemory = {}
+		-- false: global
+		-- true: per part
+		-- id: open that id
+	
 	for k, v in pairs(item.headers) do
 		v.ItemType = "header"
 	end
@@ -873,11 +880,19 @@ function GlobalGUI.tabControl(headers, items)
 		for k, item in pairs(self.headers) do
 			item:setVisible(visible)
 		end
+		if type(self.tabStateSetting) ~= "boolean" then -- specific tab reset is defined
+			self.currenttab = self.tabStateSetting
+		elseif self.tabStateSetting == true and parentClassInstance then -- load from part is true
+			self.currenttab = partInstancesOpenedTabMemory[parentClassInstance.interactable.id] or self.currenttab
+		end
 		self:setVisibleTab(visible)
 	end
 	
 	function item.setVisibleTab(self, visible, tab)
 		self.currenttab = tab or self.currenttab -- change tab if defined
+		if self.tabStateSetting == true and parentClassInstance then -- save loaded tab
+			partInstancesOpenedTabMemory[parentClassInstance.interactable.id] = self.currenttab
+		end
 		for itemindex, item in pairs(self.items) do
 			item:setVisible(itemindex == self.currenttab and visible)
 		end

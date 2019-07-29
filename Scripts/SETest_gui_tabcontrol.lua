@@ -72,69 +72,29 @@ function guiExample_tabcontrol.client_onSetupGui( self )
 	--	 simpler behaviour: select header2 in 1 part , exit gui, go to another part and header2 will also be selected instead of default header1 
 	--   code change for this: you can remove the on_show and on_click definitions in the following 30-ish lines of code untill '/>' )
 	
-	local menu1 = GlobalGUI.tabControl({},{}) -- empty menu, no headers, no items (you can also use headers and items as parameters
+	local menu1 = GlobalGUI.tabControl({},{}, true) -- empty menu, no headers, no items (you can also use headers and items as parameters
 	
-	local function changeTabHighlight(item, self, tabSelected)
-		local oldHighlight = self.menu1_selected
-		self.menu1_selected = tabSelected
-		menu1.headers["menu1_option"..oldHighlight]:on_show(self) -- reference based ('menu1') 
-		item:on_show(self)
-	end
 	
-	local menu1_headerButton1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 100, 200, 50, "Header1", 
-		function(item, self) -- on_click
-			changeTabHighlight(item, self, 1)
-		end, 
-		function(item, self) -- on_show
-			menu1:setVisibleTab(true, "menu1_option"..self.menu1_selected) -- ' "menu1_option"..self.menu1_selected ' is the id it gives that tab when adding it using 'menu1:addItemWithId' later on in the code.
-			item:setText( self.menu1_selected == 1 and "#df7000Header1" or "Header1")
-		end)
-	local menu1_headerButton2 = GlobalGUI.buttonSmall(bgx + 500, bgy + 100, 200, 50, "Header2", 
-		function(item, self) -- on_click
-			changeTabHighlight(item, self, 2)
-		end,  
-		function(item, self) -- on_show
-			item:setText( self.menu1_selected == 2 and "#df7000Header2" or "Header2")
-		end)
-	local menu1_headerButton3 = GlobalGUI.buttonSmall(bgx + 700, bgy + 100, 200, 50, "Header3", 
-		function(item, self) -- on_click
-			changeTabHighlight(item, self, 3)
-		end,
-		function(item, self) -- on_show
-			item:setText( self.menu1_selected == 3 and "#df7000Header3" or "Header3")
-		end)
+	local menu1_headerButton1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 100, 200, 50, "Header1")
+	local menu1_headerButton2 = GlobalGUI.buttonSmall(bgx + 500, bgy + 100, 200, 50, "Header2")
+	local menu1_headerButton3 = GlobalGUI.buttonSmall(bgx + 700, bgy + 100, 200, 50, "Header3")
 	   
 	-- custom menu highlighting and per part tab selection />
 	-- note: the 'tabcontrol' handles the 'clicking on a header causes these items to show up' behaviour on its own. 'setVisibleTab' is just a way for the modder to control it.
 	
 	local dummy = GlobalGUI.buttonSmall( 0, 0, 600, 90, "dummy")
 	
-	local menu1_option2_submenu = GlobalGUI.tabControl({},{})
+	local menu1_option2_submenu = GlobalGUI.tabControl({},{}, true) 
 	
-	local menu1_option2_header1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 160, 300, 50, "Header2 subheader1",
-		function(item, self)
-			self.menu1_option2_selected = 1
-			for k, menuItems in pairs(menu1_option2_submenu.headers) do menuItems:on_show(self) end
-		end,
-		function(item, self)
-			menu1_option2_submenu:setVisibleTab(true, "menu1_option2_header"..self.menu1_option2_selected)
-			item:setText(self.menu1_option2_selected == 1 and "#df7000Header2 subheader1" or "Header2 subheader1")
-		end)
-	local menu1_option2_header2 = GlobalGUI.buttonSmall(bgx + 600, bgy + 160, 300, 50, "Header2 subheader2",
-		function(item, self)
-			self.menu1_option2_selected = 2
-			for k, menuItems in pairs(menu1_option2_submenu.headers) do menuItems:on_show(self) end
-		end,
-		function(item, self)
-			item:setText(self.menu1_option2_selected == 2 and "#df7000Header2 subheader2" or "Header2 subheader2") 
-		end)
+	local menu1_option2_header1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 160, 300, 50, "Header2 subheader1")
+	local menu1_option2_header2 = GlobalGUI.buttonSmall(bgx + 600, bgy + 160, 300, 50, "Header2 subheader2")
 	
 	menu1_option2_submenu:addItemWithId("menu1_option2_header1", menu1_option2_header1, dummy)
 	menu1_option2_submenu:addItemWithId("menu1_option2_header2", menu1_option2_header2, dummy)
 	
 	
 	
-	 
+	
 	
 	
 	menu1:addItemWithId("menu1_option1", menu1_headerButton1, GlobalGUI.button(bgx + 300, bgy + 175, 600, 325, "BLOW EVERYTHING UP", 
