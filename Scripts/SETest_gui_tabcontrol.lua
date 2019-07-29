@@ -74,37 +74,38 @@ function guiExample_tabcontrol.client_onSetupGui( self )
 	
 	local menu1 = GlobalGUI.tabControl({},{}, true) -- empty menu, no headers, no items (you can also use headers and items as parameters
 	
+	do -- header 1
+		local menu1_headerButton1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 100, 200, 50, "Header1")
+		
+		menu1:addItemWithId("menu1_option1", menu1_headerButton1, GlobalGUI.button(bgx + 300, bgy + 175, 600, 325, "BLOW EVERYTHING UP", 
+				function(item, self)
+					guiExample_tabcontrol.GUI:sendToServer("server_button_click", "any data here, table, boolean, number, whatever rly")
+				end 
+			)
+		) 
+	end
 	
-	local menu1_headerButton1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 100, 200, 50, "Header1")
-	local menu1_headerButton2 = GlobalGUI.buttonSmall(bgx + 500, bgy + 100, 200, 50, "Header2")
-	local menu1_headerButton3 = GlobalGUI.buttonSmall(bgx + 700, bgy + 100, 200, 50, "Header3")
-	   
-	-- custom menu highlighting and per part tab selection />
-	-- note: the 'tabcontrol' handles the 'clicking on a header causes these items to show up' behaviour on its own. 'setVisibleTab' is just a way for the modder to control it.
+	do -- header 2 
+		local menu1_headerButton2 = GlobalGUI.buttonSmall(bgx + 500, bgy + 100, 200, 50, "Header2")
+		
+		
+		local menu1_option2_submenu = GlobalGUI.tabControl({},{}, true) 
+		
+		local menu1_option2_header1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 160, 300, 50, "Header2 subheader1")
+		local menu1_option2_header2 = GlobalGUI.buttonSmall(bgx + 600, bgy + 160, 300, 50, "Header2 subheader2")
+		
+		local dummy = GlobalGUI.buttonSmall( 0, 0, 600, 90, "dummy")
+		menu1_option2_submenu:addItemWithId("menu1_option2_header1", menu1_option2_header1, dummy)
+		menu1_option2_submenu:addItemWithId("menu1_option2_header2", menu1_option2_header2, dummy)
+		
+		
+		menu1:addItemWithId("menu1_option2", menu1_headerButton2, menu1_option2_submenu)
+	end
 	
-	local dummy = GlobalGUI.buttonSmall( 0, 0, 600, 90, "dummy")
-	
-	local menu1_option2_submenu = GlobalGUI.tabControl({},{}, true) 
-	
-	local menu1_option2_header1 = GlobalGUI.buttonSmall(bgx + 300, bgy + 160, 300, 50, "Header2 subheader1")
-	local menu1_option2_header2 = GlobalGUI.buttonSmall(bgx + 600, bgy + 160, 300, 50, "Header2 subheader2")
-	
-	menu1_option2_submenu:addItemWithId("menu1_option2_header1", menu1_option2_header1, dummy)
-	menu1_option2_submenu:addItemWithId("menu1_option2_header2", menu1_option2_header2, dummy)
-	
-	
-	
-	
-	
-	
-	menu1:addItemWithId("menu1_option1", menu1_headerButton1, GlobalGUI.button(bgx + 300, bgy + 175, 600, 325, "BLOW EVERYTHING UP", 
-			function(item, self)
-				guiExample_tabcontrol.GUI:sendToServer("server_button_click", "any data here, table, boolean, number, whatever rly")
-			end 
-		)
-	) 
-	menu1:addItemWithId("menu1_option2", menu1_headerButton2, menu1_option2_submenu)
-	menu1:addItemWithId("menu1_option3", menu1_headerButton3, GlobalGUI.buttonSmall(bgx + 400, bgy + 200, 200, 50, "dummy3"))
+	do -- header 3
+		local menu1_headerButton3 = GlobalGUI.buttonSmall(bgx + 700, bgy + 100, 200, 50, "Header3")
+		menu1:addItemWithId("menu1_option3", menu1_headerButton3, GlobalGUI.buttonSmall(bgx + 400, bgy + 200, 200, 50, "dummy3"))
+	end
 	
 	guiExample_tabcontrol.GUI:addItemWithId("tabControl1", menu1) -- !!! add the items to menu1 first before adding menu1 to the gui !!!!!!
 end
