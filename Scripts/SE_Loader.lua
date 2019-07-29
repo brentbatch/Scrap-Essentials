@@ -36,8 +36,6 @@ dofile "SE_Libs/color.lua"
 dofile "SE_Libs/interactable.lua" -- only load when you need it
 dofile "SE_Libs/math.lua"
 dofile "SE_Libs/physics.lua"
-dofile "SE_Libs/physics.lua"
-dofile "SE_Libs/player.lua"
 dofile "SE_Libs/table.lua"
 dofile "SE_Libs/vec3.lua"
 dofile "SE_Libs/globalgui.lua" -- only load when you need it
