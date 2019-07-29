@@ -1,9 +1,7 @@
-description.json
-preview.*
-
 Cache/
 Effects/
 Gui/
-Objects/
-
+Objects/Database/ShapeSets/testing/
+Objects/Mesh/testing/
+Objects/Textures/testing/
 Scripts/Testing/
