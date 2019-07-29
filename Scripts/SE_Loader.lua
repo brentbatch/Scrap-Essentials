@@ -41,6 +41,7 @@ dofile "SE_Libs/vec3.lua"
 dofile "SE_Libs/globalgui.lua" -- only load when you need it
 dofile "SE_Libs/wireless.lua"
 dofile "SE_Libs/overdrive.lua"
+dofile "SE_Libs/fakeplayer.lua"
 
 --dofile "SE_Libs/player.lua" -- only load when you need it
 
