@@ -74,7 +74,7 @@ sm.color.match = function(rgba)
 		["472800ff"] = 40
 	}
 
-	return match[tostring(rbga)]
+	return match[tostring(rgba)]
 end
 
 --RGB to HSV converter
