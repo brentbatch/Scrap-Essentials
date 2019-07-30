@@ -693,7 +693,7 @@ function GlobalGUI.textBox( posX, posY, width, height, value, onclick_callback, 
 	item.on_show = on_show
 	item.on_click = onclick_callback
 	item.gui = sm.gui.load("NewGameMenu.layout")
-	item.gui:find("NewMainPanel"):setPosition(0,-100)
+	item.gui:find("NewMainPanel"):setPosition(0,-70)
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
 
@@ -702,7 +702,7 @@ function GlobalGUI.textBox( posX, posY, width, height, value, onclick_callback, 
 	sm.gui.widget.destroy(MainPanel:find("Worlds"))
 		
 	item.widget = MainPanel:find("Name")
-	item.widget:setPosition(0,100)
+	item.widget:setPosition(0,70)
 	item.widget:setSize(width, height)
 	item.widget:setText(value)
 	item.id = item.widget.id
@@ -758,6 +758,7 @@ function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on
 	sm.gui.widget.destroy(item.widget:find("Background"))
 	item.widget:setPosition(posX , posY )
 	item.widget:setSize(width, height)
+	item.widget:bindOnClick("client_onclick")
 	
 	item.id = item.widget.id
 	
@@ -775,7 +776,6 @@ function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on
 		if play_sound then sm.audio.play(play_sound) end
 		if self.on_click then self:on_click(parentClassInstance) end
 	end
-	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
 		if visible and self.on_show then self:on_show(parentClassInstance) end
