@@ -63,15 +63,9 @@ function guiExample_tabcontrol.client_onSetupGui( self )
 	local bgx, bgy = guiExample_tabcontrol.GUI.bgPosX , guiExample_tabcontrol.GUI.bgPosY
 
 
-	-- < the following menu setup adds highlighting and per part it remembers which tab is selected.
-	-- if you want the behaviour to be simpler (selected tab is global):
-	--	 simpler behaviour: select header2 in 1 part , exit gui, go to another part and header2 will also be selected instead of default header1
-	--   code change for this: you can remove the on_show and on_click definitions in the following 30-ish lines of code untill '/>' )
-
 	local menu1 = GlobalGUI.tabControl({},{}, true, "#df7f00") -- empty menu, no headers, no items (you can also use headers and items as parameters
 
 	do -- header 1
-
 		menu1:addItemWithId("menu1_option1",
 			GlobalGUI.buttonSmall(bgx + 100, bgy + 100, 200, 50, "Header1"), -- header button
 			GlobalGUI.button(bgx + 100, bgy + 175, 600, 325, "#ff0000EXPLODE EVERYONE", -- content (a button)
@@ -83,7 +77,6 @@ function guiExample_tabcontrol.client_onSetupGui( self )
 	end
 
 	do -- header 2
-
 		local menu1_option2_submenu = GlobalGUI.tabControl({},{}, true, "#00ff00", "#ff0000")
 
 		local textBox = GlobalGUI.textBox( bgx + 175, bgy + 220, 450, 300, "textBoxes are very limited atm, this it the max size, no 'enters'")
@@ -174,7 +167,8 @@ function guiExample_tabcontrol.client_onSetupGui( self )
 						true, "#00df70"
 					),
 				}, 
-				true, "#00df70")
+				true, "#00df70"
+			)
 		)
 	end
 
