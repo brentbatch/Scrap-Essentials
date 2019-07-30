@@ -93,6 +93,53 @@
 			"sticky": "-Z+Z-Y+Y-X+X",			
 			"rotationSet": "PropYZ",
 			"qualityLevel": 2
+		},
+		{
+			"uuid": "e279cf40-32ac-4b1f-a684-a02ba5d8d548",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+                                    "$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_dif.tga",
+									"$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_asg.tga",
+									"$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_nor.tga"
+								],
+								"material": "PoseAnimDifAsgNor"
+							},
+                            {
+                                "textureList": [
+                                    "$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_dif.tga",
+									"$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_asg.tga",
+									"$GAME_DATA/Objects/Textures/interactive/obj_interactive_logicgate_nor.tga"
+                                ],
+                                "material": "UVAnimDifAsgNor",
+                                "custom":
+                                {
+                                    "uv0": { "u": 0.16666667, "v": 0.1645 }
+                                }
+                            }
+                        ],
+						"mesh": "$GAME_DATA/Objects/Mesh/interactive/obj_interactive_logicgate_off.fbx",
+						"pose0": "$GAME_DATA/Objects/Mesh/interactive/obj_interactive_logicgate_on.fbx"
+					}
+				]
+			},
+            "scripted" : 
+			{
+				"filename": "$MOD_DATA/Scripts/SETest_gui_optionMenu.lua",
+				"classname": "guiExample_optionMenu"
+			},
+			"color": "df7f00",
+			"box": {
+				"x": 1, "y": 1, "z": 1
+			},
+			"density": 250.0,
+			"physicsMaterial": "Plastic",
+			"sticky": "-Z+Z-Y+Y-X+X",			
+			"rotationSet": "PropYZ",
+			"qualityLevel": 2
 		}
 	]
 }
