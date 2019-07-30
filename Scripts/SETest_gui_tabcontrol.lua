@@ -42,7 +42,7 @@ function guiExample_tabcontrol.client_onSetupGui( self )
 	}
 
 	guiExample_tabcontrol.GUI =
-		GlobalGUI.create(self, "GUI - TEST", 800, 600,
+		GlobalGUI.create(self, "GUI - TEST - TABCONTROL", 800, 600,
 			function(guiself, self) -- on_hide
 				if annoyingPrints then
 					print("part",self.shape,"closed gui \""..guiself.title.."\" at location",self.shape.worldPosition)

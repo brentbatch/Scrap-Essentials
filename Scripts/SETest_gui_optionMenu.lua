@@ -27,7 +27,7 @@ end
 function guiExample_optionMenu.client_onSetupGui( self )
 	if self:wasCreated(guiExample_optionMenu.GUI) then return end -- only allow remote shape to create a gui
 
-	guiExample_optionMenu.GUI = GlobalGUI.create(self, "GUI - TEST", 800, 600)
+	guiExample_optionMenu.GUI = GlobalGUI.create(self, "GUI - TEST - OPTIONMENU", 800, 600)
 	
 	local bgx, bgy = guiExample_optionMenu.GUI.bgPosX , guiExample_optionMenu.GUI.bgPosY
 
