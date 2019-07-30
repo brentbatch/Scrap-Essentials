@@ -26,11 +26,6 @@ end
 
 
 function guiExample_tabcontrol.client_onCreate( self )
-	self.interactable:setUvFrameIndex(0)
-
-	self.menu1_selected = 1
-	self.menu1_option2_selected = 1
-
 end
 
 function guiExample_tabcontrol.client_onSetupGui( self )
