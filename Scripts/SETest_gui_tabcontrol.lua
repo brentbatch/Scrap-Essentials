@@ -118,8 +118,64 @@ function guiExample_tabcontrol.client_onSetupGui( self )
 	end
 
 	do -- header 3
-		local menu1_headerButton3 = GlobalGUI.buttonSmall(bgx + 500, bgy + 100, 200, 50, "Header3")
-		menu1:addItemWithId("menu1_option3", menu1_headerButton3, GlobalGUI.buttonSmall(bgx + 200, bgy + 200, 200, 50, "dummy3"))
+		-- full nesting is possible: 
+		menu1:addItemWithId("menu1_option3", 
+			GlobalGUI.buttonSmall(bgx + 500, bgy + 100, 200, 50, "Header3"), 
+			GlobalGUI.tabControl(
+				{
+					GlobalGUI.buttonSmall(bgx + 100, bgy + 160, 150, 50, "H3 subheader1"),
+					GlobalGUI.buttonSmall(bgx + 250, bgy + 160, 150, 50, "H3 subheader2"),
+					GlobalGUI.buttonSmall(bgx + 400, bgy + 160, 150, 50, "H3 subheader3"),
+					GlobalGUI.buttonSmall(bgx + 550, bgy + 160, 150, 50, "H3 subheader4"),
+				},
+				{
+					GlobalGUI.tabControl(
+						{
+							GlobalGUI.buttonSmall(bgx + 100, bgy + 220, 300, 50, "H3 sh1 subsub1"),
+							GlobalGUI.buttonSmall(bgx + 400, bgy + 220, 300, 50, "H3 sh1 subsub2"),
+						},
+						{
+							GlobalGUI.label(bgx + 100, bgy + 290, 600, 200, "Header3\nSubHeader1\nSubSubHeader1\nCONTENT"),
+							GlobalGUI.label(bgx + 100, bgy + 290, 600, 200, "Header3\nSubHeader1\nSubSubHeader2\nCONTENT")
+						},
+						true, "#00df70"
+					),
+					GlobalGUI.tabControl(
+						{
+							GlobalGUI.buttonSmall(bgx + 100, bgy + 220, 300, 50, "H3 sh2 subsub1"),
+							GlobalGUI.buttonSmall(bgx + 400, bgy + 220, 300, 50, "H3 sh2 subsub2"),
+						},
+						{
+							GlobalGUI.label(bgx + 100, bgy + 290, 600, 200, "Header3\nSubHeader2\nSubSubHeader1\nCONTENT"),
+							GlobalGUI.label(bgx + 100, bgy + 290, 600, 200, "Header3\nSubHeader2\nSubSubHeader2\nCONTENT")
+						},
+						true, "#00df70"
+					),
+					GlobalGUI.tabControl(
+						{
+							GlobalGUI.buttonSmall(bgx + 100, bgy + 220, 300, 50, "H3 sh3 subsub1"),
+							GlobalGUI.buttonSmall(bgx + 400, bgy + 220, 300, 50, "H3 sh3 subsub2"),
+						},
+						{
+							GlobalGUI.label(bgx + 100, bgy + 290, 600, 200, "Header3\nSubHeader3\nSubSubHeader1\nCONTENT"),
+							GlobalGUI.label(bgx + 100, bgy + 290, 600, 200, "Header3\nSubHeader3\nSubSubHeader2\nCONTENT")
+						},
+						true, "#00df70"
+					),
+					GlobalGUI.tabControl(
+						{
+							GlobalGUI.buttonSmall(bgx + 100, bgy + 220, 300, 50, "H3 sh4 subsub1"),
+							GlobalGUI.buttonSmall(bgx + 400, bgy + 220, 300, 50, "H3 sh4 subsub2"),
+						},
+						{
+							GlobalGUI.label(bgx + 100, bgy + 290, 600, 200, "Header3\nSubHeader4\nSubSubHeader1\nCONTENT"),
+							GlobalGUI.label(bgx + 100, bgy + 290, 600, 200, "Header3\nSubHeader4\nSubSubHeader2\nCONTENT")
+						},
+						true, "#00df70"
+					),
+				}, 
+				true, "#00df70")
+		)
 	end
 
 	guiExample_tabcontrol.GUI:addItemWithId("tabControl1", menu1) -- !!! add the items to menu1 first before adding menu1 to the gui !!!!!!
