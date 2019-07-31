@@ -1,4 +1,4 @@
-local version = 1.1
+local version = 1.2
 
 --[[
 	requires: table.lua
@@ -6,15 +6,15 @@ local version = 1.1
 	prefix: sm.fakePlayer.
 	
 	API:
-		sm.fakePlayer.createFake( shape, customId(=1) )
+		sm.fakePlayer.createFake( shape, customId(=0) )
 			creates a new fake player (globaly available shape) and asigns it a custom ID
 			- shape: the shape to make fake (userdata: Shape)
-			- customId: custom ID to asign to fake (number, nil(=1) or string)
+			- customId: custom ID to asign to fake (number, nil(=0) or string)
 		
-		sm.fakePlayer.deleteFake( shape, customId(=1) )
+		sm.fakePlayer.deleteFake( shape, customId(=0) )
 			deletes a specific fake player
 			- shape: the shape to delete (userdata: Shape)
-			- customId: custom id to look for shape (number, nil(=1) or string)
+			- customId: custom id to look for shape (number, nil(=0) or string)
 		
 		sm.fakePlayer.clearFake( shape )
 			clears all instances of the shape from the fakePlayers
@@ -96,8 +96,8 @@ end
 
 function sm.fakePlayer.deleteFake( shape, id )
 	assert(type(shape) == "Shape" or type(shape) == "table", "deleteFake, parameter1: shape or table expected! got: "..type(shape))
-	assert(type(id) == "number" or type(id) == "nil" or type(id) == "string", "createFake, parameter2: number or string expected! got: "..type(id))
-	assert(shape.id, "createFake, parameter1: shape has no .id field!")
+	assert(type(id) == "number" or type(id) == "nil" or type(id) == "string", "deleteFake, parameter2: number or string expected! got: "..type(id))
+	assert(shape.id, "deleteFake, parameter1: shape has no .id field!")
 	
 	if not fakes[shape.id] or
 	   not fakes[shape.id][id or 0] then 
@@ -111,7 +111,7 @@ end
 
 function sm.fakePlayer.clearFake( shape )
 	assert(type(shape) == "Shape" or type(shape) == "table", "clearFake: shape or table expected! got: "..type(shape))
-	assert(shape.id, "createFake, parameter1: shape has no .id field!")
+	assert(shape.id, "clearFake, parameter1: shape has no .id field!")
 	
 	fakes[shape.id] = nil
 end
