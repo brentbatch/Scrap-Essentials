@@ -693,7 +693,7 @@ function GlobalGUI.textBox( posX, posY, width, height, value, onclick_callback, 
 	item.on_show = on_show
 	item.on_click = onclick_callback
 	item.gui = sm.gui.load("NewGameMenu.layout")
-	item.gui:find("NewMainPanel"):setPosition(0,-100)
+	item.gui:find("NewMainPanel"):setPosition(0,-70)
 	item.gui:setPosition(posX , posY )
 	item.gui:setSize(width, height)
 
@@ -702,7 +702,7 @@ function GlobalGUI.textBox( posX, posY, width, height, value, onclick_callback, 
 	sm.gui.widget.destroy(MainPanel:find("Worlds"))
 		
 	item.widget = MainPanel:find("Name")
-	item.widget:setPosition(0,100)
+	item.widget:setPosition(0,70)
 	item.widget:setSize(width, height)
 	item.widget:setText(value)
 	item.id = item.widget.id
@@ -758,6 +758,7 @@ function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on
 	sm.gui.widget.destroy(item.widget:find("Background"))
 	item.widget:setPosition(posX , posY )
 	item.widget:setSize(width, height)
+	item.widget:bindOnClick("client_onclick")
 	
 	item.id = item.widget.id
 	
@@ -775,7 +776,6 @@ function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on
 		if play_sound then sm.audio.play(play_sound) end
 		if self.on_click then self:on_click(parentClassInstance) end
 	end
-	item.widget:bindOnClick("client_onclick")
 	
 	function item.setVisible(self, visible)
 		if visible and self.on_show then self:on_show(parentClassInstance) end
@@ -793,13 +793,15 @@ function GlobalGUI.invisibleBox( posX, posY, width, height, onclick_callback, on
 end
 
 
-function GlobalGUI.tabControl(headers, items)
+function GlobalGUI.tabControl(headers, items, tabStateSetting, highlightColor, defaultColor)
 	assert(type(headers) == "table", "tabControl: headers, table expected! got: "..type(headers))
 	assert(type(items) == "table", "tabControl: items, table expected! got: "..type(items))
 	for k, v in pairs(headers) do assert(type(v) == "table", "tabControl: header, table expected! got: "..type(v)) end
 	for k, v in pairs(items) do assert(type(v) == "table", "tabControl: item, table expected! got: "..type(v)) end
 	for k, v in pairs(headers) do assert(v.getClickRoutes ~= nil, "tabControl: header, item expected! Not an item!") end
 	for k, v in pairs(items) do assert(v.getClickRoutes ~= nil, "tabControl: item, item expected! Not an item!") end
+	assert(type(highlightColor) == "string" or highlightColor == nil, "tabControl: highlightColor, string expected! got: "..type(highlightColor))
+	assert(type(defaultColor) == "string" or defaultColor == nil, "tabControl: defaultColor, string expected! got: "..type(defaultColor))
 	
 	local item = {}
 	item.id = headers and headers[1] and headers[1].id or nil
@@ -808,6 +810,16 @@ function GlobalGUI.tabControl(headers, items)
 	item.visible = true
 	item.onClickRouteTable = {} 
 	item.currenttab = headers[1] and 1 or nil
+	item.tabStateSetting = tabStateSetting or false -- boolean or headerId, default false
+		-- false: global
+		-- true: per part
+		-- id: open that id
+		
+	item.highlightColor = highlightColor -- nil = don't do highlighting
+	item.defaultColor = defaultColor or "#ffffff"
+	
+	local partInstancesOpenedTabMemory = {}
+	
 	for k, v in pairs(item.headers) do
 		v.ItemType = "header"
 	end
@@ -870,14 +882,33 @@ function GlobalGUI.tabControl(headers, items)
 	end
 	function item.setVisible(self, visible)
 		self.visible = visible
-		for k, item in pairs(self.headers) do
+		for itemindex, item in pairs(self.headers) do
 			item:setVisible(visible)
+		end
+		if type(self.tabStateSetting) ~= "boolean" then -- specific tab reset is defined
+			self.currenttab = self.tabStateSetting
+		elseif self.tabStateSetting == true and parentClassInstance then -- load from part is true
+			self.currenttab = partInstancesOpenedTabMemory[parentClassInstance.interactable.id] or self.currenttab
 		end
 		self:setVisibleTab(visible)
 	end
 	
 	function item.setVisibleTab(self, visible, tab)
 		self.currenttab = tab or self.currenttab -- change tab if defined
+		if self.tabStateSetting == true and parentClassInstance then -- save loaded tab
+			partInstancesOpenedTabMemory[parentClassInstance.interactable.id] = self.currenttab
+		end
+		for itemindex, item in pairs(self.headers) do
+			if self.highlightColor and item.setText then
+				if itemindex == self.currenttab then -- highlight
+					local oldText = item:getText()
+					item:setText(self.highlightColor .. (oldText:sub(0,1)=="#" and oldText:sub(8) or oldText))
+				else
+					local oldText = item:getText()
+					item:setText(self.defaultColor .. (oldText:sub(0,1)=="#" and oldText:sub(8) or oldText))
+				end
+			end
+		end
 		for itemindex, item in pairs(self.items) do
 			item:setVisible(itemindex == self.currenttab and visible)
 		end

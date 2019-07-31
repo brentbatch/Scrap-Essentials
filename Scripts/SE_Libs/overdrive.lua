@@ -236,7 +236,7 @@ function sm.overdrive.create(self, properties)
 			if value_type == "Interactable" then
 				value_type = value:getType()
 			end
-			local input_type = sm.color.match[parent.shape.color] % 10 or 1
+			local input_type = ((sm.color.match(parent.shape.color) - 1) % 10) + 1 or 1
 			if not inputs[value_type] then inputs[value_type] = {} end
 			if not inputs[value_type][input_type] then inputs[value_type][input_type] = {} end
 			table.insert(inputs[value_type][input_type], value)

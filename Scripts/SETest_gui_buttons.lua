@@ -87,7 +87,7 @@ function guiExample_buttons.client_onSetupGui( self )
 	
 	guiExample_buttons.GUI = GlobalGUI.create(
 		self, 
-		"GUI - TEST", -- title
+		"GUI - TEST - BUTTONS", -- title
 		600, -- width
 		300, -- height
 		function(guiself, self) -- on_hide
