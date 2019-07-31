@@ -19,15 +19,6 @@ function guiExample_tabcontrol.server_onCreate( self )
 	guiExample_tabcontrol:createRemote(self) -- create remote shape to handle all gui stuff, only one remote shape will exist at a time.
 end
 
-function guiExample_tabcontrol.server_onFixedUpdate( self, dt )
-	
-end
-
-
-
-function guiExample_tabcontrol.client_onCreate( self )
-end
-
 function guiExample_tabcontrol.client_onSetupGui( self )
 	if self:wasCreated(guiExample_tabcontrol.GUI) then return end -- only allow remote shape to create a gui
 
