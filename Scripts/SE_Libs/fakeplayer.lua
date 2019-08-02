@@ -116,7 +116,7 @@ function sm.fakePlayer.clearFake( shape )
 	fakes[shape.id] = nil
 end
 
-function sm.fakePlayer.getFakes( )	
+function sm.fakePlayer.getFakes( )
 	return fakes
 end
 
