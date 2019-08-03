@@ -66,7 +66,7 @@ function PlayerTracker.server_onFixedUpdate(self)
 		for k,v in pairs(fakePlayers) do
 			local fakeplayerDistance =  (position - v:getWorldPosition()):length()
 			if fakeplayerDistance < distance then
-				fakeplayerDistance = distance
+				distance = fakeplayerDistance
 				trackedFakePlayer = v
 			end
 		end
