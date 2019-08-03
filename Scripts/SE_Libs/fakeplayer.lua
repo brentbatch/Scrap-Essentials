@@ -25,11 +25,11 @@ local version = 1.3
 			returns a list of fake players (userdata: Shape), if none will return empty table
 			- sorted: return table sorted by custom Id's and shape Id's (boolean or nil)
 			example return (sorted = true):
-				{[231] = {myId = shapeA, anotherId = shapeA}, [527] = {[10] = shapeB}}
-				notice: in this example 231 is the id of shapeA and 527 the id of shapeB (asigned by the game)
+				{myId = {[1] = shapeA, [2] = shapeB}, anotherId = {shapeA}, [10] = {shapeB}}
+				notice: asigned custom id's are kept in the table
 			example return (sorted = false or nil):
-				{[1] = shapeA, [2] = shapeA, [3] = shapeB}
-				notice: this is the same table as in the previous example, but incremented with a natural increment and no sub-tables
+				{[1] = shapeA, [2] = shapeB, [3] = shapeA, [4] = shapeB}
+				notice: asigned custom id's are not in the table
 				
 		it is possible to feed the createFake() function a table with a similar structure as the userdata to make
 		custom locations. Please note that some mods require a lot of data for it to work properly, most missing
