@@ -1,4 +1,4 @@
-local version = 1.0
+local version = 1.1
 
 -- Required:
 	-- self.overdrive = sm.overdrive.create(self, action, properties) -- put at the start of server_onCreate(self)
