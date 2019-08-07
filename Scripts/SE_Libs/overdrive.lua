@@ -291,7 +291,7 @@ function sm.overdrive.create(self, properties)
 		-- VALUE
 		data.interactable:setValue(value)
 		-- POWER
-		if type(value) == number then
+		if type(value) == "number" then
 			if math.abs(value) < 3.4 * 10^38 then
 				data.interactable:setPower(value)
 			else
