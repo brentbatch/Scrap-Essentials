@@ -887,7 +887,7 @@ function GlobalGUI.tabControl(headers, items, tabStateSetting, highlightColor, d
 		end
 		if type(self.tabStateSetting) ~= "boolean" then -- specific tab reset is defined
 			self.currenttab = self.tabStateSetting
-		elseif self.tabStateSetting == true and parentClassInstance then -- load from part is true
+		elseif self.tabStateSetting == true and parentClassInstance and sm.exists(parentClassInstance.interactable) then -- load from part is true
 			self.currenttab = partInstancesOpenedTabMemory[parentClassInstance.interactable.id] or self.currenttab
 		end
 		self:setVisibleTab(visible)
@@ -895,7 +895,7 @@ function GlobalGUI.tabControl(headers, items, tabStateSetting, highlightColor, d
 	
 	function item.setVisibleTab(self, visible, tab)
 		self.currenttab = tab or self.currenttab -- change tab if defined
-		if self.tabStateSetting == true and parentClassInstance then -- save loaded tab
+		if self.tabStateSetting == true and parentClassInstance and sm.exists(parentClassInstance.interactable) then -- save loaded tab
 			partInstancesOpenedTabMemory[parentClassInstance.interactable.id] = self.currenttab
 		end
 		for itemindex, item in pairs(self.headers) do
