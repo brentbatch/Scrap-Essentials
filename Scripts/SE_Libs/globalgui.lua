@@ -228,7 +228,7 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 	
 	-- setup: 
 	local screenWidth, screenHeight = sm.gui.getScreenSize()
-	if (autoscale ~= nil) or autoscale then -- 'native' res = 1080p
+	if (autoscale == nil) or autoscale then -- 'native' res = 1080p
 		GlobalGUI.scaleX = screenWidth / (devScreenWidth or 1920)
 		GlobalGUI.scaleY = screenHeight / (devScreenHeight or 1080)
 	end
@@ -259,7 +259,7 @@ function GlobalGUI.create(parentClass, title, width, height, on_hide, on_update,
 		
         local title = bgMainPanel:find("Title")
         title:setPosition(0, 0)
-        title:setSize(guiBuilder.width, 90)
+        title:setSize(guiBuilder.width, 90 * GlobalGUI.scaleY )
         title:setText(guiBuilder.title)
 		title:bindOnClick("killview")
 		table.insert(guiBuilder.items, layer)
