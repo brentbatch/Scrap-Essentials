@@ -1,4 +1,4 @@
-local version = 1.0
+local version = 1.1
 
 -- Required:
 	-- self.overdrive = sm.overdrive.create(self, action, properties) -- put at the start of server_onCreate(self)
@@ -212,7 +212,7 @@ function sm.overdrive.create(self, properties)
 		return inputs
 	end
 
-	function instance.getSortedInputs(self, parents)
+	function instance.get10SortedInputs(self, parents)
 		-- SORTS INPUTS INTO: VALUE_TYPE, INPUT_TYPE, NATURAL_INCREMENT, VALUE
 		local inputs = {}
 		for i, parent in pairs(parents) do
@@ -244,6 +244,38 @@ function sm.overdrive.create(self, properties)
 		return inputs
 	end
 
+	function instance.get40SortedInputs(self, parents)
+		-- SORTS INPUTS INTO: VALUE_TYPE, INPUT_TYPE, NATURAL_INCREMENT, VALUE
+		local inputs = {}
+		for i, parent in pairs(parents) do
+			local value
+			local parent_type = parent:getType()
+			if objects[parent.id] then
+				if objects[parent.id].properties["delay"] then
+					value = parent:getValue()
+				else
+					value = parent:getValue(true)
+				end
+			elseif parent:getType() == "scripted" then
+				value = parent:getPower()
+			elseif parent_type == "logic" or parent_type == "timer" or parent_type == "button" or parent_type == "lever" or parent_type == "sensor" then
+				value = parent:isActive()
+			else
+				value = parent
+			end
+
+			local value_type = type(value)
+			if value_type == "Interactable" then
+				value_type = value:getType()
+			end
+			local input_type = sm.color.match(parent.shape.color)
+			if not inputs[value_type] then inputs[value_type] = {} end
+			if not inputs[value_type][input_type] then inputs[value_type][input_type] = {} end
+			table.insert(inputs[value_type][input_type], value)
+		end
+		return inputs
+	end
+
 	function instance.setValue(self, data, in_value)
 		-- SETS VALUE, POWER AND ACTIVE
 		-- REFERENCE PROTECTION
@@ -259,7 +291,7 @@ function sm.overdrive.create(self, properties)
 		-- VALUE
 		data.interactable:setValue(value)
 		-- POWER
-		if type(value) == number then
+		if type(value) == "number" then
 			if math.abs(value) < 3.4 * 10^38 then
 				data.interactable:setPower(value)
 			else

@@ -1,4 +1,4 @@
-local version = 1.2
+local version = 1.3
 
 --[[
 	requires: table.lua
@@ -21,11 +21,15 @@ local version = 1.2
 			!!! use this in scriptclass.server_onDestroy() !!!
 			- shape: the shape to clear (userdata: Shape)
 		
-		sm.fakePlayer.getFakes()
-			returns a list of fake players (userdata: Shape) sorted by custom id, if none will return empty table
-			example return:
-				{[231] = {myId = shapeA, anotherId = shapeA}, [527] = {[10] = shapeB}}
-				notice: in this example 231 is the id of shapeA and 527 the id of shapeB (asigned by the game)
+		sm.fakePlayer.getFakes( sorted )
+			returns a list of fake players (userdata: Shape), if none will return empty table
+			- sorted: return table sorted by custom Id's and shape Id's (boolean or nil)
+			example return (sorted = true):
+				{myId = {[1] = shapeA, [2] = shapeB}, anotherId = {shapeA}, [10] = {shapeB}}
+				notice: asigned custom id's are kept in the table
+			example return (sorted = false or nil):
+				{[1] = shapeA, [2] = shapeB, [3] = shapeA, [4] = shapeB}
+				notice: asigned custom id's are not in the table
 				
 		it is possible to feed the createFake() function a table with a similar structure as the userdata to make
 		custom locations. Please note that some mods require a lot of data for it to work properly, most missing
@@ -116,8 +120,25 @@ function sm.fakePlayer.clearFake( shape )
 	fakes[shape.id] = nil
 end
 
-function sm.fakePlayer.getFakes( )	
-	return fakes
+function sm.fakePlayer.getFakes( sorted )
+	if sorted then
+		local tbl = {}
+		for shapeId,shapes in pairs(fakes) do
+			for customId,shape in pairs(shapes) do
+				if not tbl[customId] then tbl[customId] = {} end
+				table.insert(tbl[customId], shape)
+			end
+		end
+		return tbl
+	else
+		local tbl = {}
+		for shapeId,shapes in pairs(fakes) do
+			for customId,shape in pairs(shapes) do
+				table.insert(tbl, shape)
+			end
+		end
+		return tbl
+	end
 end
 
 

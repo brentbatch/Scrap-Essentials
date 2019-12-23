@@ -1,4 +1,4 @@
-
+ 
 ----------------------------------
 --Copyright (c) 2019 Brent Batch--
 --     Free to use for all      --
@@ -887,7 +887,7 @@ function GlobalGUI.tabControl(headers, items, tabStateSetting, highlightColor, d
 		end
 		if type(self.tabStateSetting) ~= "boolean" then -- specific tab reset is defined
 			self.currenttab = self.tabStateSetting
-		elseif self.tabStateSetting == true and parentClassInstance then -- load from part is true
+		elseif self.tabStateSetting == true and parentClassInstance and parentClassInstance.interactable and sm.exists(parentClassInstance.interactable) then -- load from part is true
 			self.currenttab = partInstancesOpenedTabMemory[parentClassInstance.interactable.id] or self.currenttab
 		end
 		self:setVisibleTab(visible)
@@ -895,7 +895,7 @@ function GlobalGUI.tabControl(headers, items, tabStateSetting, highlightColor, d
 	
 	function item.setVisibleTab(self, visible, tab)
 		self.currenttab = tab or self.currenttab -- change tab if defined
-		if self.tabStateSetting == true and parentClassInstance then -- save loaded tab
+		if self.tabStateSetting == true and parentClassInstance and parentClassInstance.interactable and sm.exists(parentClassInstance.interactable) then -- save loaded tab
 			partInstancesOpenedTabMemory[parentClassInstance.interactable.id] = self.currenttab
 		end
 		for itemindex, item in pairs(self.headers) do
@@ -1104,9 +1104,11 @@ function optionItem(widgetItem)
 		widget:bindOnClick("client_onclick")
 		self.label = {
 			widget = widget,
-			onClick = onclick_callback
+			on_click = onclick_callback,
+			setText = function(item, text) item.widget:setText(text) end,
+			getText = function(item) return item.widget:getText() end
 		}
-		return widget
+		return self.label
 	end
 	function item.addDecreaseButton(self, posX, posY, width, height, onclick_callback)
 		assert(type(posX) == "number", "optionMenu.item.addDecreaseButton: posX, number expected! got: "..type(posX))
@@ -1124,9 +1126,9 @@ function optionItem(widgetItem)
 		widget:bindOnClick("client_onclick")
 		self.decreaseButton = {
 			widget = widget,
-			onClick = onclick_callback
+			on_click = onclick_callback
 		}
-		return widget
+		return self.decreaseButton
 	end
 	function item.addValueBox(self, posX, posY, width, height, name, onclick_callback)
 		assert(type(posX) == "number", "optionMenu.item.addValueBox: posX, number expected! got: "..type(posX))
@@ -1146,9 +1148,11 @@ function optionItem(widgetItem)
 		widget:bindOnClick("client_onclick")
 		self.valueBox = {
 			widget = widget,
-			onClick = onclick_callback
+			on_click = onclick_callback,
+			setText = function(item, text) item.widget:setText(text) end,
+			getText = function(item) return item.widget:getText() end
 		}
-		return widget
+		return self.valueBox
 	end
 	function item.addIncreaseButton(self, posX, posY, width, height, onclick_callback)
 		assert(type(posX) == "number", "optionMenu.item.addIncreaseButton: posX, number expected! got: "..type(posX))
@@ -1166,9 +1170,9 @@ function optionItem(widgetItem)
 		widget:bindOnClick("client_onclick")
 		self.increaseButton = {
 			widget = widget,
-			onClick = onclick_callback
+			on_click = onclick_callback
 		}
-		return widget
+		return self.increaseButton
 	end
 	function item.killNowUselessFunctions(self)
 		self.killNowUselessFunctions = nil
@@ -1194,8 +1198,8 @@ function optionItem(widgetItem)
 	end
 	function item.onClick(self, widgetid, parentClassInstance)
 		for _,button in pairs({self.label, self.decreaseButton, self.valueBox, self.increaseButton}) do
-			if button.onClick and button.widget.id == widgetid then
-				button:onClick(parentClassInstance)
+			if button.on_click and button.widget.id == widgetid then
+				button:on_click(parentClassInstance)
 			end
 		end
 	end

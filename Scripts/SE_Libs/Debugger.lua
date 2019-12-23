@@ -17,10 +17,10 @@ function se.isModder()  -- an 'is a known modder' check by Brent Batch
 		local modders = {["Brent Batch"] = true, ["TechnologicNick"] = true, ["MJM"] = true, ["Mini"] = true, ["YT_BlueFlame"] = true} 
 		local name = sm.player.getAllPlayers()[1].name 
 		if modders[name] then 
-			function sm.isModder() return true end 
+			function se.isModder() return true end 
 			return true 
 		else 
-			function sm.isModder() return false end 
+			function se.isModder() return false end 
 			return false 
 		end
 	end
