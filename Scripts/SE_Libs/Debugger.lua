@@ -1,5 +1,20 @@
+--[[
+	Copyright (c) 2019 Scrap Essentials Team
+]]--
 
-function sm.checkDev(shape)   -- a '-dev' check by Brent Batch
+
+local classO = class
+function class(...) -- multi-class inheritance, by Brent Batch
+	local klass = {}
+	for _, super in pairs({...}) do
+		for k, v in pairs(super) do
+			klass[k] = v
+		end
+	end
+	return classO(klass)
+end
+
+sm.checkDev = sm.checkDev or function(shape)   -- a '-dev' check by Brent Batch
 	if sm.isDev ~= nil then return sm.isDev end
 	if lastLoaded == 1 then -- on world init dev check
 		sm.isDev = true
@@ -38,9 +53,7 @@ function devPrint(...)  -- print that only works in '-dev' mode  (requires a par
 	end 
 end
 
-if not printO then
-    printO = print
-end
+local printO = print
 function print(...) -- fancy print by TechnologicNick
 	if se.isModder() then
 		printO("[" .. sm.game.getCurrentTick() .. "]", sm.isServerMode() and "[Server]" or "[Client]", ...)
